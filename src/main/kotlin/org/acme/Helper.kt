@@ -30,7 +30,7 @@ class Helper {
             data[2] = ((input shl 8) shr 24).toUByte()
             data[1] = ((input shl 16) shr 24).toUByte()
             data[0] = ((input shl 24) shr 24).toUByte()
-            log.info { "littleEndianEncode: $input -> ${bytesToHex(data)}" }
+            log.debug { "littleEndianEncode: $input -> ${bytesToHex(data)}" }
             return data
         }
 

@@ -4,6 +4,8 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.net.Socket
 import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -21,9 +23,13 @@ class ArylicConnection(socket: Socket) {
     private val out: BufferedOutputStream = BufferedOutputStream(clientSocket.getOutputStream())
     private val inStream: BufferedInputStream = BufferedInputStream(clientSocket.getInputStream())
     private var running = true
-    private val serde = ArylicSerde()
+    private lateinit var serde: ArylicSerde
 
     constructor(host: String, port: Int) : this(Socket(host, port))
+
+    fun setSerde(serde: ArylicSerde) {
+        this.serde = serde
+    }
 
     fun test() {
         log.info { "Start datareader" }
@@ -47,6 +53,15 @@ class ArylicConnection(socket: Socket) {
         }
     }
 
+    fun testMut(enabled: Boolean) {
+        sendCommand(Command.Mute(enabled))
+    }
+
+    fun sendCommand(cmd: SentCommand) {
+        out.write(serde.encode(cmd).toByteArray())
+        out.flush()
+    }
+
     fun readData(): Boolean {
         val buf = ByteArray(2048)
         val size = inStream.read(buf)
@@ -54,10 +69,8 @@ class ArylicConnection(socket: Socket) {
             log.warn { "No data to read" }
             false
         } else {
-            log.info { "IN1: " + Helper.bytesToHex(buf.copyOfRange(0, size)) }
-            log.info { "IN2: " + String(buf.copyOfRange(0, size)) }
             val udata = UData(buf, size)
-            serde.decode(udata)
+            serde.decode(udata){}
             true
         }
     }
