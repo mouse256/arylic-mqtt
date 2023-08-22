@@ -24,6 +24,7 @@ dependencies {
     implementation("io.quarkus:quarkus-jackson")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.github.oshai:kotlin-logging-jvm:5.0.0")
+    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")

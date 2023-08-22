@@ -4,6 +4,7 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.net.Socket
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.vertx.core.Promise
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import kotlinx.coroutines.GlobalScope
@@ -29,12 +30,6 @@ class ArylicConnection(socket: Socket) {
 
     fun setSerde(serde: ArylicSerde) {
         this.serde = serde
-    }
-
-    fun test() {
-        log.info { "Start datareader" }
-        startDataReader()
-
     }
 
     fun startDataReader() {
@@ -74,6 +69,10 @@ class ArylicConnection(socket: Socket) {
             true
         }
     }
+
+//    fun expect() {
+//        Promise
+//    }
 
 
 }

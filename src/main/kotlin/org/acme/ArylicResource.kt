@@ -1,83 +1,89 @@
 package org.acme
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.uni
+import io.vertx.core.Future
+import io.vertx.core.Promise
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Inject
 import jakarta.ws.rs.GET
+import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.Path
+import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import java.util.concurrent.CompletableFuture
 
-@Path("/arylic")
+@Path("/arylic/{device}")
 class ArylicResource {
 
-    //private val arylicConnection = ArylicConnection("192.168.1.185", 8899) //eetkamer
-
-    @Inject
-    lateinit var serde: ArylicSerde
-
-    private val arylicConnection = ArylicConnection("192.168.1.74", 8899)
     private val log = KotlinLogging.logger {}
 
-    @PostConstruct
-    fun postConstruct() {
-        log.info { "postConstruct" }
-        arylicConnection.setSerde(serde)
-        arylicConnection.test()
-    }
+    @Inject
+    lateinit var controller: Controller
 
-    @GET
-    @Path("init")
-    @Produces(MediaType.TEXT_PLAIN)
-    fun hello(): String {
-        log.info { "hello" }
-        arylicConnection.test()
-        return "Hello from RESTEasy Reactive"
+    private fun getDevice(device: String): ArylicConnection {
+        return controller.getConnection(device) ?: throw NotFoundException("Device with name $device not found")
     }
-
     @GET
     @Path("mute")
     @Produces(MediaType.TEXT_PLAIN)
-    fun mute(): String {
+    fun mute(@PathParam("device") device: String): String {
         log.info { "mute" }
-        arylicConnection.testMut(true)
-        return "Mute!"
+        getDevice(device).testMut(true)
+        return "$device muted\n"
     }
 
     @GET
     @Path("unmute")
     @Produces(MediaType.TEXT_PLAIN)
-    fun unmute(): String {
+    fun unmute(@PathParam("device") device: String): String {
         log.info { "unmute" }
-        arylicConnection.testMut(false)
-        return "UnMute!"
+        getDevice(device).testMut(false)
+        return "$device unmuted\n"
     }
 
     @GET
     @Path("device-info")
     @Produces(MediaType.TEXT_PLAIN)
-    fun deviceInfo(): String {
+    fun deviceInfo(@PathParam("device") device: String): String {
         log.info { "device-info" }
-        arylicConnection.sendCommand(Command.DeviceInfo)
-        return "deviceInfo"
+        getDevice(device).sendCommand(Command.DeviceInfo)
+        return "$device unmuted\n"
     }
 
     @GET
     @Path("metadata")
     @Produces(MediaType.TEXT_PLAIN)
-    fun metadata(): String {
+    fun metadata(@PathParam("device") device: String): CompletableFuture<String> {
         log.info { "playback metadata" }
-        arylicConnection.sendCommand(Command.PlaybackMetadata)
-        return "playback metadata"
+        //arylicConnection.sendCommand(Command.PlaybackMetadata)
+        //return "playback metadata"
+        val prom = Promise.promise<String>()
+        prom.complete("blah5")
+        return asCompletableFuture(prom.future())
     }
 
-    @GET
-    @Path("status")
-    @Produces(MediaType.TEXT_PLAIN)
-    fun status(): String {
-        log.info { "playback status" }
-        arylicConnection.sendCommand(Command.PlaybackStatus)
-        return "playback status"
+    fun asCompletableFuture(fut: Future<String>): CompletableFuture<String> {
+        val cf = CompletableFuture<String>()
+        fut.onComplete { ar ->
+            if (ar.succeeded()) {
+                cf.complete(ar.result())
+            } else {
+                cf.completeExceptionally(ar.cause())
+            }
+         }
+        return cf
     }
+//
+//    @GET
+//    @Path("status")
+//    @Produces(MediaType.TEXT_PLAIN)
+//    fun status(@PathParam("device") device: String): String {
+//        log.info { "playback status" }
+//        arylicConnection.sendCommand(Command.PlaybackStatus)
+//        return "playback status"
+//    }
 }
