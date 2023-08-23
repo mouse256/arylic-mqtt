@@ -15,6 +15,7 @@ import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 @Path("/arylic/{device}")
 class ArylicResource {
@@ -57,17 +58,30 @@ class ArylicResource {
     @GET
     @Path("metadata")
     @Produces(MediaType.TEXT_PLAIN)
-    fun metadata(@PathParam("device") device: String): CompletableFuture<String> {
+    fun metadata(@PathParam("device") device: String): CompletableFuture<Command.Data> {
         log.info { "playback metadata" }
-        //arylicConnection.sendCommand(Command.PlaybackMetadata)
-        //return "playback metadata"
-        val prom = Promise.promise<String>()
-        prom.complete("blah5")
-        return asCompletableFuture(prom.future())
+        val conn = getDevice(device)
+        val fut = conn.expect(Command.Data::class.java)
+        conn.sendCommand(Command.PlaybackMetadata)
+
+        return asCompletableFuture(fut)
     }
 
-    fun asCompletableFuture(fut: Future<String>): CompletableFuture<String> {
-        val cf = CompletableFuture<String>()
+
+    @GET
+    @Path("status")
+    @Produces(MediaType.TEXT_PLAIN)
+    fun status(@PathParam("device") device: String): CompletableFuture<Command.Inf> {
+        log.info { "playback status" }
+        val conn = getDevice(device)
+        val fut = conn.expect(Command.Inf::class.java)
+        conn.sendCommand(Command.PlaybackStatus)
+
+        return asCompletableFuture(fut)
+    }
+
+    private fun<T: Any> asCompletableFuture(fut: Future<T>): CompletableFuture<T> {
+        val cf = CompletableFuture<T>()
         fut.onComplete { ar ->
             if (ar.succeeded()) {
                 cf.complete(ar.result())
@@ -75,15 +89,6 @@ class ArylicResource {
                 cf.completeExceptionally(ar.cause())
             }
          }
-        return cf
+        return cf.orTimeout(5, TimeUnit.SECONDS)
     }
-//
-//    @GET
-//    @Path("status")
-//    @Produces(MediaType.TEXT_PLAIN)
-//    fun status(@PathParam("device") device: String): String {
-//        log.info { "playback status" }
-//        arylicConnection.sendCommand(Command.PlaybackStatus)
-//        return "playback status"
-//    }
 }

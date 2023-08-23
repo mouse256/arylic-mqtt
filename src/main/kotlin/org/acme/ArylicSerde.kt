@@ -28,9 +28,11 @@ class ArylicSerde {
         val PLUS = '+'.code.toUByte()
         val LF = '\n'.code.toUByte()
         val MEA = toByteArray("MEA")
+        val PLY = toByteArray("PLY")
         val DEV = toByteArray("DEV")
         val GET = toByteArray("GET")
         val RDY = toByteArray("RDY")
+        val INF = toByteArray("INF")
         val PINFGET = toByteArray("PINFGET")
         private val UNKNOWN = toByteArray("UNKNOWN")
 
@@ -147,6 +149,7 @@ class ArylicSerde {
 
                     id2.contentEquals(MUT) -> handleMut(payload, handler)
                     id2.contentEquals(MEA) -> handleMea(payload, handler)
+                    id2.contentEquals(PLY) -> handlePly(payload, handler)
 
                     else -> {
                         log.warn { "Unknown id2: ${payload.asString()}" }
@@ -194,6 +197,15 @@ class ArylicSerde {
         }
     }
 
+    private fun handlePly(payload: UData, handler: (ReceiveCommand) -> Unit) {
+        val dat = payload.next(3)
+        if (INF.contentEquals(dat)) {
+            handleInf(payload, handler)
+        } else {
+            log.warn { "Unknown PLY command, got ${payload.asString()}" }
+        }
+    }
+
     /**
      * AXX+MEA+DATdata&
      * data: json format , {"title":"HEXSTRING", "artist ":"HEXSTRING",
@@ -214,6 +226,19 @@ class ArylicSerde {
         )
         log.info { "Received $dataJson" }
         handler.invoke(dataJson)
+    }
+
+    /**
+     * AXX+PLY+INFdata&
+     * data: json format
+     */
+    private fun handleInf(payload: UData, handler: (ReceiveCommand) -> Unit) {
+        val data = payload.next(payload.remaining() -2) //ends with "&" and "\n"
+        log.debug { "Inf: ${String(data!!.asByteArray())}" }
+        val dataJsonHex = objectMapper.readValue<Command.Inf>(data!!.asByteArray())
+
+        log.info { "Received $dataJsonHex" }
+        handler.invoke(dataJsonHex)
     }
 
     /**

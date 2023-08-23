@@ -39,6 +39,26 @@ sealed interface Command {
                     @JsonProperty("skiplimit") val skipLimit: Int
     ) : ReceiveCommand
 
+    data class Inf(val type: String,
+                    val ch: String,
+                    val mode: String,
+                    val loop: String,
+                   val eq: String,
+                   val status: String,
+                   val curpos: String,
+                   @JsonProperty("offset_pts") val offsetPts: String,
+                   val totlen: String,
+                   @JsonProperty("Title") val title: String,
+                   @JsonProperty("Artist") val artist: String,
+                   @JsonProperty("Album") val album: String,
+                   val alarmflag: String,
+                   val plicount: String,
+                   val plicurr: String,
+                   val vol: String,
+                   val mute: String,
+    ) : ReceiveCommand
+
+
     object DeviceInfo : SentCommand, CommandHelper() {
         /**
          * MCU+DEV+GET

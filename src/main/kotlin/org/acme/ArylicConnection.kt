@@ -4,6 +4,7 @@ import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.net.Socket
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.vertx.core.Future
 import io.vertx.core.Promise
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
@@ -25,6 +26,7 @@ class ArylicConnection(socket: Socket) {
     private val inStream: BufferedInputStream = BufferedInputStream(clientSocket.getInputStream())
     private var running = true
     private lateinit var serde: ArylicSerde
+    private val listeners = mutableListOf<(ReceiveCommand) -> Boolean>()
 
     constructor(host: String, port: Int) : this(Socket(host, port))
 
@@ -65,14 +67,35 @@ class ArylicConnection(socket: Socket) {
             false
         } else {
             val udata = UData(buf, size)
-            serde.decode(udata){}
+            serde.decode(udata, this::handle)
             true
         }
     }
 
-//    fun expect() {
-//        Promise
-//    }
+    private fun handle(cmd: ReceiveCommand) {
+        log.info { "Received command: $cmd" }
+        synchronized(listeners) {
+            listeners.filter { it(cmd) }
+                .toList()
+                .forEach { listeners.remove(it) }
+        }
+    }
 
+    fun <T: ReceiveCommand> expect(clazz: Class<T>):Future<T> {
+        val promise = Promise.promise<T>()
+        val listener: ((ReceiveCommand) -> Boolean) = { cmd: ReceiveCommand ->
+            if (clazz.isInstance(cmd)) {
+                @Suppress("UNCHECKED_CAST")
+                promise.complete(cmd as T)
+                true
+            } else {
+                false
+            }
+        }
+        synchronized(listeners) {
+            listeners.add(listener)
+        }
+        return promise.future();
+    }
 
 }
