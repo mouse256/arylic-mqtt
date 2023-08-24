@@ -27,6 +27,7 @@ class ArylicConnection(socket: Socket) {
     private var running = true
     private lateinit var serde: ArylicSerde
     private val listeners = mutableListOf<(ReceiveCommand) -> Boolean>()
+    private var handler: ((ReceiveCommand) -> Unit)? = null
 
     constructor(host: String, port: Int) : this(Socket(host, port))
 
@@ -50,16 +51,12 @@ class ArylicConnection(socket: Socket) {
         }
     }
 
-    fun testMut(enabled: Boolean) {
-        sendCommand(Command.Mute(enabled))
-    }
-
     fun sendCommand(cmd: SentCommand) {
         out.write(serde.encode(cmd).toByteArray())
         out.flush()
     }
 
-    fun readData(): Boolean {
+    private fun readData(): Boolean {
         val buf = ByteArray(2048)
         val size = inStream.read(buf)
         return if (size == -1) {
@@ -74,6 +71,7 @@ class ArylicConnection(socket: Socket) {
 
     private fun handle(cmd: ReceiveCommand) {
         log.info { "Received command: $cmd" }
+        handler?.invoke(cmd)
         synchronized(listeners) {
             listeners.filter { it(cmd) }
                 .toList()
@@ -96,6 +94,10 @@ class ArylicConnection(socket: Socket) {
             listeners.add(listener)
         }
         return promise.future();
+    }
+
+    fun setHandler(handler: (ReceiveCommand) -> Unit) {
+        this.handler = handler
     }
 
 }

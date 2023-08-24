@@ -33,7 +33,7 @@ class ArylicResource {
     @Produces(MediaType.TEXT_PLAIN)
     fun mute(@PathParam("device") device: String): String {
         log.info { "mute" }
-        getDevice(device).testMut(true)
+        getDevice(device).sendCommand(Command.Mute(true))
         return "$device muted\n"
     }
 
@@ -42,7 +42,7 @@ class ArylicResource {
     @Produces(MediaType.TEXT_PLAIN)
     fun unmute(@PathParam("device") device: String): String {
         log.info { "unmute" }
-        getDevice(device).testMut(false)
+        getDevice(device).sendCommand(Command.Mute(false))
         return "$device unmuted\n"
     }
 

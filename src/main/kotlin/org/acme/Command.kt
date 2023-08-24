@@ -7,7 +7,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
-sealed interface ReceiveCommand: Command
+sealed interface ReceiveCommand: Command {
+    fun name(): String
+}
 sealed interface SentCommand: Command{
 
     fun toPayload(): UByteArray
@@ -30,6 +32,10 @@ sealed interface Command {
             val data = if (enabled) ArylicSerde.MUT_MUTE else ArylicSerde.MUT_UNMUTE
             return merge3cmd(ArylicSerde.MCU, ArylicSerde.MUT, data)
         }
+
+        override fun name(): String {
+            return "Mute"
+        }
     }
 
     data class Data(val title: String,
@@ -37,7 +43,12 @@ sealed interface Command {
                     val album: String,
                     val vendor: String,
                     @JsonProperty("skiplimit") val skipLimit: Int
-    ) : ReceiveCommand
+
+    ) : ReceiveCommand {
+        override fun name(): String {
+            return "Data"
+        }
+    }
 
     data class Inf(val type: String,
                     val ch: String,
@@ -56,7 +67,11 @@ sealed interface Command {
                    val plicurr: String,
                    val vol: String,
                    val mute: String,
-    ) : ReceiveCommand
+    ) : ReceiveCommand {
+        override fun name(): String {
+            return "Info"
+        }
+    }
 
 
     object DeviceInfo : SentCommand, CommandHelper() {
@@ -92,5 +107,9 @@ sealed interface Command {
         }
     }
 
-    object Ready : ReceiveCommand
+    object Ready : ReceiveCommand {
+        override fun name(): String {
+            return "Ready"
+        }
+    }
 }
