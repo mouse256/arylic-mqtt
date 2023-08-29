@@ -50,31 +50,46 @@ sealed interface Command {
         }
     }
 
-    data class Inf(val type: String,
-                    val ch: String,
-                    val mode: String,
-                    val loop: String,
-                   val eq: String,
-                   val status: String,
-                   val curpos: String,
-                   @JsonProperty("offset_pts") val offsetPts: String,
-                   val totlen: String,
-                   @JsonProperty("Title") val title: String,
-                   @JsonProperty("Artist") val artist: String,
-                   @JsonProperty("Album") val album: String,
-                   val alarmflag: String,
-                   val plicount: String,
-                   val plicurr: String,
-                   val vol: String,
-                   val mute: String,
+    data class DeviceInfo(
+        ////AXX+DEV+INFSoundSystem_B706;release;Bureau;;0;0;0&
+        val apSsid: String,
+        val type: String,
+        val name: String,
+        val routerSsid: String,
+        val signalStrength: Int,
+        val batteryState: Int,
+        val batteryValue: Int
+    ): ReceiveCommand {
+        override fun name(): String {
+            return "DeviceInfo"
+        }
+    }
+
+    data class PlayInfo(val type: String,
+                        val ch: String,
+                        val mode: String,
+                        val loop: String,
+                        val eq: String,
+                        val status: String,
+                        val curpos: String,
+                        @JsonProperty("offset_pts") val offsetPts: String,
+                        val totlen: String,
+                        @JsonProperty("Title") val title: String,
+                        @JsonProperty("Artist") val artist: String,
+                        @JsonProperty("Album") val album: String,
+                        val alarmflag: String,
+                        val plicount: String,
+                        val plicurr: String,
+                        val vol: String,
+                        val mute: String,
     ) : ReceiveCommand {
         override fun name(): String {
-            return "Info"
+            return "PlayInfo"
         }
     }
 
 
-    object DeviceInfo : SentCommand, CommandHelper() {
+    object DeviceInfoCmd : SentCommand, CommandHelper() {
         /**
          * MCU+DEV+GET
          * Return device information

@@ -3,7 +3,7 @@ package org.acme
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 @OptIn(ExperimentalUnsignedTypes::class)
-class UData(private val data : UByteArray) {
+class UData(val data : UByteArray) {
 
     private var pos =0;
     private val log = KotlinLogging.logger {}
@@ -17,6 +17,10 @@ class UData(private val data : UByteArray) {
         val newData = data.copyOfRange(pos, pos+size)
         pos += size
         return newData
+    }
+
+    fun remainder(): UData {
+        return UData(fetch(remaining())!!)
     }
 
     fun fetch(size: Int): UByteArray? {

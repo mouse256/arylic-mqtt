@@ -1,11 +1,7 @@
 package org.acme
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.smallrye.mutiny.Uni
-import io.smallrye.mutiny.uni
 import io.vertx.core.Future
-import io.vertx.core.Promise
-import jakarta.annotation.PostConstruct
 import jakarta.inject.Inject
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.NotFoundException
@@ -13,7 +9,6 @@ import jakarta.ws.rs.Path
 import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
-import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -49,10 +44,12 @@ class ArylicResource {
     @GET
     @Path("device-info")
     @Produces(MediaType.TEXT_PLAIN)
-    fun deviceInfo(@PathParam("device") device: String): String {
+    fun deviceInfo(@PathParam("device") device: String): CompletableFuture<Command.DeviceInfo> {
         log.info { "device-info" }
-        getDevice(device).sendCommand(Command.DeviceInfo)
-        return "$device unmuted\n"
+        val conn = getDevice(device)
+        val fut = conn.expect(Command.DeviceInfo::class.java)
+        conn.sendCommand(Command.DeviceInfoCmd)
+        return asCompletableFuture(fut)
     }
 
     @GET
@@ -71,10 +68,10 @@ class ArylicResource {
     @GET
     @Path("status")
     @Produces(MediaType.TEXT_PLAIN)
-    fun status(@PathParam("device") device: String): CompletableFuture<Command.Inf> {
+    fun status(@PathParam("device") device: String): CompletableFuture<Command.PlayInfo> {
         log.info { "playback status" }
         val conn = getDevice(device)
-        val fut = conn.expect(Command.Inf::class.java)
+        val fut = conn.expect(Command.PlayInfo::class.java)
         conn.sendCommand(Command.PlaybackStatus)
 
         return asCompletableFuture(fut)

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
-import java.lang.IllegalStateException
 
 @OptIn(ExperimentalUnsignedTypes::class)
 @ApplicationScoped
@@ -78,7 +77,7 @@ class ArylicSerde {
 
 
     fun decode(data: UData, handler: (ReceiveCommand) -> Unit) {
-        log.debug { "Decoding" }
+        log.debug { "Decoding: ${Helper.bytesToHex(data.data)}" }
 
         if (!decodeHeader(data)) {
             log.warn { "Can't parse header" }
@@ -150,6 +149,7 @@ class ArylicSerde {
                     id2.contentEquals(MUT) -> handleMut(payload, handler)
                     id2.contentEquals(MEA) -> handleMea(payload, handler)
                     id2.contentEquals(PLY) -> handlePly(payload, handler)
+                    id2.contentEquals(DEV) -> handleDev(payload, handler)
 
                     else -> {
                         log.warn { "Unknown id2: ${payload.asString()}" }
@@ -188,14 +188,43 @@ class ArylicSerde {
         val dat = payload.next(3)
         if (DAT.contentEquals(dat)) {
             handleData(payload, handler)
-        }
-        else if (RDY.contentEquals(dat)) {
+        } else if (RDY.contentEquals(dat)) {
             handleRdy(handler)
             return
         } else {
             log.warn { "Unknown MEA command, got ${payload.asString()}" }
         }
     }
+
+    private fun handleDev(payload: UData, handler: (ReceiveCommand) -> Unit) {
+        val dat = payload.next(3)
+        if (INF.contentEquals(dat)) {
+            handleDeviceInfo(payload, handler)
+        } else {
+            log.warn { "Unknown AXX+DEV command, got ${payload.asString()}" }
+        }
+    }
+
+    private fun handleDeviceInfo(payload: UData, handler: (ReceiveCommand) -> Unit) {
+        val dat = payload.remainder().asString()
+        if (!dat.endsWith("&")) {
+            log.warn { "Corrupted DeviceInfo msg: $dat" }
+        }
+        //AXX+DEV+INFSoundSystem_B706;release;Bureau;;0;0;0&
+        val datSplit = dat.substring(0, dat.length - 2).split(';')
+        handler.invoke(
+            Command.DeviceInfo(
+                datSplit[0],
+                datSplit[1],
+                datSplit[2],
+                datSplit[3],
+                datSplit[4].toInt(),
+                datSplit[5].toInt(),
+                datSplit[6].toInt(),
+            )
+        )
+    }
+
 
     private fun handlePly(payload: UData, handler: (ReceiveCommand) -> Unit) {
         val dat = payload.next(3)
@@ -214,7 +243,7 @@ class ArylicSerde {
      * "artist ": "", "album": "", "vendor": "" }&
      */
     private fun handleData(payload: UData, handler: (ReceiveCommand) -> Unit) {
-        val data = payload.next(payload.remaining() -2) //ends with "&" and "\n"
+        val data = payload.next(payload.remaining() - 2) //ends with "&" and "\n"
         log.debug { "DATA: ${String(data!!.asByteArray())}" }
         val dataJsonHex = objectMapper.readValue<Command.Data>(data!!.asByteArray())
         val dataJson = Command.Data(
@@ -233,9 +262,9 @@ class ArylicSerde {
      * data: json format
      */
     private fun handleInf(payload: UData, handler: (ReceiveCommand) -> Unit) {
-        val data = payload.next(payload.remaining() -2) //ends with "&" and "\n"
+        val data = payload.next(payload.remaining() - 2) //ends with "&" and "\n"
         log.debug { "Inf: ${String(data!!.asByteArray())}" }
-        val dataJsonHex = objectMapper.readValue<Command.Inf>(data!!.asByteArray())
+        val dataJsonHex = objectMapper.readValue<Command.PlayInfo>(data!!.asByteArray())
 
         log.info { "Received $dataJsonHex" }
         handler.invoke(dataJsonHex)
