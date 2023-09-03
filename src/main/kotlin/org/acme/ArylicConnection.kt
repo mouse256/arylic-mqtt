@@ -41,11 +41,13 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
                     if (!readData()) {
                         log.warn { "Stream closed!" }
                         running = false
-                        cb.onDisconnected(host)
                     }
                 }
             } catch (e: IOException) {
                 log.warn(e) { "IO exception" }
+            } finally {
+                running = false
+                cb.onDisconnected(host)
             }
         }
     }

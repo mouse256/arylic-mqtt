@@ -119,6 +119,33 @@ class SerdeTest {
     }
 
     @Test
+    fun encodePlay() {
+        serde.encode(Command.Play).shouldBe(
+            stringToUByte(
+                "18 96 18 20 0C 00 00 00 19 03 00 00 00 00 00 00 00 00 00 00 4D 43 55 2B 50 4C 59 2D 50 4C 41 0A"
+            )
+        )
+    }
+
+    @Test
+    fun encodePause() {
+        serde.encode(Command.Pause).shouldBe(
+            stringToUByte(
+                "18 96 18 20 0C 00 00 00 34 03 00 00 00 00 00 00 00 00 00 00 4D 43 55 2B 50 4C 59 2D 50 55 53 0A"
+            )
+        )
+    }
+
+    @Test
+    fun encodePlayPause() {
+        serde.encode(Command.PlayPause).shouldBe(
+            stringToUByte(
+                "18 96 18 20 0C 00 00 00 32 03 00 00 00 00 00 00 00 00 00 00 4D 43 55 2B 50 4C 59 2B 50 55 53 0A"
+            )
+        )
+    }
+
+    @Test
     fun testDecodeDeviceInfo() {
         val data = stringToUByte(
             "" +

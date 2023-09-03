@@ -74,6 +74,40 @@ class ArylicResource {
         return asCompletableFuture(fut)
     }
 
+    @GET
+    @Path("playpause")
+    @Produces(MediaType.TEXT_PLAIN)
+    fun playPause(@PathParam("device") device: String): CompletableFuture<Command.PlayStatus> {
+        log.info { "play/pause" }
+        val conn = getDevice(device)
+        val fut = conn.expect(Command.PlayStatus::class.java)
+        conn.sendCommand(Command.PlayPause)
+
+        return asCompletableFuture(fut)
+    }
+
+    @GET
+    @Path("play")
+    @Produces(MediaType.TEXT_PLAIN)
+    fun play(@PathParam("device") device: String): String {
+        log.info { "play" }
+        val conn = getDevice(device)
+        conn.sendCommand(Command.Play) //won't reply if there is no change
+
+        return "OK"
+    }
+
+    @GET
+    @Path("pause")
+    @Produces(MediaType.TEXT_PLAIN)
+    fun pause(@PathParam("device") device: String): String {
+        log.info { "pause" }
+        val conn = getDevice(device)
+        conn.sendCommand(Command.Pause)
+
+        return "OK"
+    }
+
     private fun <T : Any> asCompletableFuture(fut: Future<T>): CompletableFuture<T> {
         val cf = CompletableFuture<T>()
         fut.onComplete { ar ->

@@ -99,6 +99,14 @@ sealed interface Command {
         }
     }
 
+    data class PlayStatus(
+        val playing: Boolean
+    ) : ReceiveCommand {
+        override fun name(): String {
+            return "PlayStatus"
+        }
+    }
+
 
     object DeviceInfoCmd : SentCommand, CommandHelper() {
         /**
@@ -108,6 +116,40 @@ sealed interface Command {
         override fun toPayload(): UByteArray {
             log.debug { "device-info to payload" }
             return merge3cmd(ArylicSerde.MCU, ArylicSerde.DEV, ArylicSerde.GET)
+        }
+    }
+
+    object Play : SentCommand, CommandHelper() {
+        /**
+         * MCU+PLY-PLA
+         * play, will return mute and play status when changed to playing
+         * state, or else no return
+         */
+        override fun toPayload(): UByteArray {
+            log.debug { "play to payload" }
+            return ArylicSerde.MCU + ArylicSerde.PLUS + ArylicSerde.PLY + ArylicSerde.MINUS + ArylicSerde.PLA + ArylicSerde.LF
+        }
+    }
+
+    object Pause : SentCommand, CommandHelper() {
+        /**
+         * MCU+PLY-PUS pause
+         * will return mute and play status when changed to pause
+         * or else no return
+         */
+        override fun toPayload(): UByteArray {
+            log.debug { "pause to payload" }
+            return ArylicSerde.MCU + ArylicSerde.PLUS + ArylicSerde.PLY + ArylicSerde.MINUS + ArylicSerde.PUS + ArylicSerde.LF
+        }
+    }
+
+    object PlayPause : SentCommand, CommandHelper() {
+        /**
+         * MCU+PLY+PUS play/pause, will return mute and play status
+         */
+        override fun toPayload(): UByteArray {
+            log.debug { "play/pause to payload" }
+            return ArylicSerde.MCU + ArylicSerde.PLUS + ArylicSerde.PLY + ArylicSerde.PLUS + ArylicSerde.PUS + ArylicSerde.LF
         }
     }
 

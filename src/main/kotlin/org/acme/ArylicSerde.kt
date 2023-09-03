@@ -24,10 +24,15 @@ class ArylicSerde {
         val DAT = toByteArray("DAT")
         val MUT_MUTE = toByteArray("001")
         val MUT_UNMUTE = toByteArray("000")
+        val PLY_PLAYING = toByteArray("001")
+        val PLY_PAUSED = toByteArray("000")
         val PLUS = '+'.code.toUByte()
+        val MINUS = '-'.code.toUByte()
         val LF = '\n'.code.toUByte()
         val MEA = toByteArray("MEA")
         val PLY = toByteArray("PLY")
+        val PLA = toByteArray("PLA")
+        val PUS = toByteArray("PUS")
         val DEV = toByteArray("DEV")
         val GET = toByteArray("GET")
         val RDY = toByteArray("RDY")
@@ -231,6 +236,10 @@ class ArylicSerde {
         val dat = payload.next(3)
         if (INF.contentEquals(dat)) {
             handleInf(payload, handler)
+        } else if (PLY_PLAYING.contentEquals(dat)) {
+            handler.invoke(Command.PlayStatus(true))
+        } else if (PLY_PAUSED.contentEquals(dat)) {
+            handler.invoke(Command.PlayStatus(false))
         } else {
             log.warn { "Unknown PLY command, got ${payload.asString()}" }
         }
