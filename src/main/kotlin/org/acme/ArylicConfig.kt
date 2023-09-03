@@ -7,9 +7,14 @@ import java.util.*
 @ConfigMapping(prefix = "arylic")
 interface ArylicConfig {
     fun devices(): Set<Device>
+
+    fun discoveryTimer(): java.time.Duration
+
     interface Device {
-        fun name(): String
+        //fun name(): String
         fun ip(): String
+
+        fun port(): Optional<Int>
     }
 
 }

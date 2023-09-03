@@ -2,7 +2,6 @@ package org.acme
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.smallrye.reactive.messaging.mqtt.MqttMessage
-import io.vertx.mutiny.core.eventbus.Message
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.eclipse.microprofile.reactive.messaging.Channel

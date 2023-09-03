@@ -3,11 +3,7 @@ package org.acme
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.Future
 import jakarta.inject.Inject
-import jakarta.ws.rs.GET
-import jakarta.ws.rs.NotFoundException
-import jakarta.ws.rs.Path
-import jakarta.ws.rs.PathParam
-import jakarta.ws.rs.Produces
+import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -23,6 +19,7 @@ class ArylicResource {
     private fun getDevice(device: String): ArylicConnection {
         return controller.getConnection(device) ?: throw NotFoundException("Device with name $device not found")
     }
+
     @GET
     @Path("mute")
     @Produces(MediaType.TEXT_PLAIN)
@@ -77,7 +74,7 @@ class ArylicResource {
         return asCompletableFuture(fut)
     }
 
-    private fun<T: Any> asCompletableFuture(fut: Future<T>): CompletableFuture<T> {
+    private fun <T : Any> asCompletableFuture(fut: Future<T>): CompletableFuture<T> {
         val cf = CompletableFuture<T>()
         fut.onComplete { ar ->
             if (ar.succeeded()) {
@@ -85,7 +82,7 @@ class ArylicResource {
             } else {
                 cf.completeExceptionally(ar.cause())
             }
-         }
+        }
         return cf.orTimeout(5, TimeUnit.SECONDS)
     }
 }

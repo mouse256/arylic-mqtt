@@ -15,17 +15,16 @@ class SerdeTest {
 
     companion object {
         private val log = KotlinLogging.logger {}
-    }
-
-    private fun stringToUByte(input: String): UByteArray {
-        log.debug { "input: $input" }
-        return input.split(' ')
-            .map {
-                if (it.length != 2) {
-                    throw IllegalStateException("size != 2: $it")
-                }
-                it.toUByte(16)
-            }.toUByteArray()
+        fun stringToUByte(input: String): UByteArray {
+            log.debug { "input: $input" }
+            return input.split(' ')
+                .map {
+                    if (it.length != 2) {
+                        throw IllegalStateException("size != 2: $it")
+                    }
+                    it.toUByte(16)
+                }.toUByteArray()
+        }
     }
 
     @Test

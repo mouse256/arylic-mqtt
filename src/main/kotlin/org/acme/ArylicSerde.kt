@@ -13,10 +13,10 @@ class ArylicSerde {
         private val log = KotlinLogging.logger {}
         private val lengthSize = 4
         private val checksumSize = 4
-        private val HEADER = ubyteArrayOf(0x18u, 0x96u, 0x18u, 0x20u)
+        val HEADER = ubyteArrayOf(0x18u, 0x96u, 0x18u, 0x20u)
         private val reservedSize = 8
 
-        private val RESERVED = ubyteArrayOf(0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u)
+        val RESERVED = ubyteArrayOf(0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u, 0x0u)
         val AXX = toByteArray("AXX")
         val MCU = toByteArray("MCU")
         val VOL = toByteArray("VOL")
@@ -207,8 +207,9 @@ class ArylicSerde {
 
     private fun handleDeviceInfo(payload: UData, handler: (ReceiveCommand) -> Unit) {
         val dat = payload.remainder().asString()
-        if (!dat.endsWith("&")) {
+        if (!dat.endsWith("&\n")) {
             log.warn { "Corrupted DeviceInfo msg: $dat" }
+            return
         }
         //AXX+DEV+INFSoundSystem_B706;release;Bureau;;0;0;0&
         val datSplit = dat.substring(0, dat.length - 2).split(';')

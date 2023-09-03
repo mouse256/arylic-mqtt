@@ -17,9 +17,9 @@ class Helper {
             }
             val res =
                 data[0].toUInt() +
-                (data[1].toUInt() shl 8) +
-                (data[2 ].toUInt() shl 16) +
-                (data[ 3 ].toUInt() shl 24)
+                        (data[1].toUInt() shl 8) +
+                        (data[2].toUInt() shl 16) +
+                        (data[3].toUInt() shl 24)
             log.debug { "littleEndianInt: ${bytesToHex(data)}  -> $res" }
             return res
         }

@@ -1,23 +1,21 @@
 package org.acme
 
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
-import java.net.Socket
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.Future
 import io.vertx.core.Promise
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.IOException
+import java.net.Socket
 
 /**
  * https://forum.arylic.com/t/latest-api-documents-and-uart-protocols/534/3
  * https://drive.google.com/file/d/1prKuVjpE0A9nSeNt_YiN5KeQOgkvTB6G/view
  */
 @OptIn(ExperimentalUnsignedTypes::class)
-class ArylicConnection(socket: Socket) {
+class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
 
     private val log = KotlinLogging.logger {}
 
@@ -29,7 +27,7 @@ class ArylicConnection(socket: Socket) {
     private val listeners = mutableListOf<(ReceiveCommand) -> Boolean>()
     private var handler: ((ReceiveCommand) -> Unit)? = null
 
-    constructor(host: String, port: Int) : this(Socket(host, port))
+    constructor(host: String, port: Int, cb: Callbacks) : this(host, Socket(host, port), cb)
 
     fun setSerde(serde: ArylicSerde) {
         this.serde = serde
@@ -43,6 +41,7 @@ class ArylicConnection(socket: Socket) {
                     if (!readData()) {
                         log.warn { "Stream closed!" }
                         running = false
+                        cb.onDisconnected(host)
                     }
                 }
             } catch (e: IOException) {
@@ -79,7 +78,7 @@ class ArylicConnection(socket: Socket) {
         }
     }
 
-    fun <T: ReceiveCommand> expect(clazz: Class<T>):Future<T> {
+    fun <T : ReceiveCommand> expect(clazz: Class<T>): Future<T> {
         val promise = Promise.promise<T>()
         val listener: ((ReceiveCommand) -> Boolean) = { cmd: ReceiveCommand ->
             if (clazz.isInstance(cmd)) {
@@ -100,4 +99,7 @@ class ArylicConnection(socket: Socket) {
         this.handler = handler
     }
 
+    interface Callbacks {
+        fun onDisconnected(host: String)
+    }
 }
