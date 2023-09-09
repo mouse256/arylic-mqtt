@@ -8,6 +8,7 @@ import org.eclipse.microprofile.reactive.messaging.Channel
 import org.eclipse.microprofile.reactive.messaging.Emitter
 import org.eclipse.microprofile.reactive.messaging.Incoming
 import java.util.concurrent.CompletionStage
+import java.util.regex.Pattern
 
 
 @ApplicationScoped
@@ -15,6 +16,7 @@ class Mqtt {
     private val log = KotlinLogging.logger {}
 
     private lateinit var controller: Controller
+    private val PATTERN_TOPIC_CMD = Pattern.compile("^arylic/cmd/(.*)/(.*)$")
 
     @Inject
     @Channel("state")
@@ -38,6 +40,24 @@ class Mqtt {
     @Incoming("cmd")
     fun consume(msg: MqttMessage<ByteArray>): CompletionStage<Void> {
         log.info { "Incoming message on: ${msg.topic}" }
+        val matcher = PATTERN_TOPIC_CMD.matcher(msg.topic)
+        if (!matcher.matches()) {
+            log.info { "Can't process msg, topic must be in format $PATTERN_TOPIC_CMD" }
+            return msg.ack()
+        }
+        val deviceName = matcher.group(1)
+        val cmd = matcher.group(2)
+        val device = controller.getConnection(deviceName)
+        if (device == null) {
+            log.info { "No device found with name $deviceName" }
+            return msg.ack()
+        }
+        when(cmd.lowercase()) {
+            "play" -> device.sendCommand(Command.Play)
+            "pause" -> device.sendCommand(Command.Pause)
+            "playpause" -> device.sendCommand(Command.PlayPause)
+            else -> log.info { "Unknown MQTT command: $cmd" }
+        }
         return msg.ack()
     }
 }
