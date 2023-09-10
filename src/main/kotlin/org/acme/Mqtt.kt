@@ -56,6 +56,11 @@ class Mqtt {
             "play" -> device.sendCommand(Command.Play)
             "pause" -> device.sendCommand(Command.Pause)
             "playpause" -> device.sendCommand(Command.PlayPause)
+            "mute" -> device.sendCommand(Command.Mute(true))
+            "unmute" -> device.sendCommand(Command.Mute(false))
+            "device-info" -> device.sendCommand(Command.DeviceInfoCmd)
+            "metadata" -> device.sendCommand(Command.PlaybackMetadata)
+            "status" -> device.sendCommand(Command.PlaybackStatus)
             else -> log.info { "Unknown MQTT command: $cmd" }
         }
         return msg.ack()
