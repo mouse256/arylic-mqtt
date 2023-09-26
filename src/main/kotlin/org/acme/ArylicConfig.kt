@@ -9,6 +9,7 @@ interface ArylicConfig {
     fun devices(): Set<Device>
 
     fun discoveryTimer(): java.time.Duration
+    fun pingTimer(): java.time.Duration
 
     interface Device {
         //fun name(): String

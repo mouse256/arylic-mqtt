@@ -8,7 +8,10 @@ import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.net.Socket
+import kotlin.time.Duration.Companion.seconds
+
 
 /**
  * https://forum.arylic.com/t/latest-api-documents-and-uart-protocols/534/3
@@ -27,7 +30,15 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
     private val listeners = mutableListOf<(ReceiveCommand) -> Boolean>()
     private var handler: ((ReceiveCommand) -> Unit)? = null
 
-    constructor(host: String, port: Int, cb: Callbacks) : this(host, Socket(host, port), cb)
+    companion object {
+        private fun createSocket(host: String, port: Int): Socket {
+            val socket = Socket()
+            socket.connect(InetSocketAddress(host, port), 5.seconds.inWholeMilliseconds.toInt())
+            return socket
+        }
+    }
+
+    constructor(host: String, port: Int, cb: Callbacks) : this(host, createSocket(host, port), cb)
 
     fun setSerde(serde: ArylicSerde) {
         this.serde = serde
@@ -53,8 +64,17 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
     }
 
     fun sendCommand(cmd: SentCommand) {
-        out.write(serde.encode(cmd).toByteArray())
-        out.flush()
+        synchronized(this) {
+            out.write(serde.encode(cmd).toByteArray())
+            out.flush()
+        }
+    }
+
+    fun ping() {
+        synchronized(this) {
+            out.write(byteArrayOf(0x0A))
+            out.flush()
+        }
     }
 
     private fun readData(): Boolean {

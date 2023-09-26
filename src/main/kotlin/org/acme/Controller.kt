@@ -6,6 +6,8 @@ import io.vertx.core.Vertx
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
 import jakarta.inject.Inject
+import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.seconds
 
 @ApplicationScoped
 class Controller : ArylicConnection.Callbacks {
@@ -27,9 +29,12 @@ class Controller : ArylicConnection.Callbacks {
     fun onStart(@Observes ev: StartupEvent) {
         log.info { "onStart" }
         vertx.setPeriodic(0, arylicConfig.discoveryTimer().toMillis()) { _ ->
-            log.info { "re-connecting" }
+            log.debug { "re-connecting" }
             arylicConfig.devices()
                 .forEach { tryConnect(it) }
+        }
+        vertx.setPeriodic(1.seconds.inWholeMilliseconds, arylicConfig.pingTimer().toMillis()) { _ ->
+            pingAll()
         }
         mqtt.setController(this)
     }
@@ -43,20 +48,33 @@ class Controller : ArylicConnection.Callbacks {
                 }
             }
         }
-        try {
-            val port = cfg.port().orElse(8899)
-            log.info { "Adding device \"${cfg.ip()}:$port\"" }
-            val conn = ArylicConnection(cfg.ip(), port, this)
-            conn.setSerde(serde)
-            conn.startDataReader()
-            conn.expect(Command.DeviceInfo::class.java)
-                .onSuccess { addDevice(conn, it) }
-                .onFailure { log.warn { "Can't fetch initial device-info" } }
-            conn.sendCommand(Command.DeviceInfoCmd)
-        } catch (ex: Exception) {
-            log.warn { "Unable to connect to device ${cfg.ip()}: ${ex.message}" }
-        }
 
+        vertx.executeBlocking<Unit> {
+            try {
+                val port = cfg.port().orElse(8899)
+                log.info { "Adding device \"${cfg.ip()}:$port\"" }
+                val conn = ArylicConnection(cfg.ip(), port, this@Controller)
+                conn.setSerde(serde)
+                conn.startDataReader()
+                conn.expect(Command.DeviceInfo::class.java)
+                    .onSuccess { addDevice(conn, it) }
+                    .onFailure { log.warn { "Can't fetch initial device-info" } }
+                conn.sendCommand(Command.DeviceInfoCmd)
+                log.info { "Requesting deviceInfo from \"${cfg.ip()}:$port\"" }
+            } catch (ex: Exception) {
+                log.warn { "Unable to connect to device ${cfg.ip()}: ${ex.message}" }
+            }
+        }
+    }
+
+    private fun pingAll() {
+        log.debug { "pinging devices" }
+        synchronized(connections) {
+            connections.forEach{
+                log.debug { "Pinging ${it.key}" }
+                it.value.ping()
+            }
+        }
     }
 
     private fun addDevice(conn: ArylicConnection, deviceInfo: Command.DeviceInfo) {
