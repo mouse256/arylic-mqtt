@@ -17,6 +17,7 @@ jobs:
         with:
           distribution: 'corretto'
           java-version: '21'
+          cache: 'gradle'
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
@@ -43,5 +44,4 @@ jobs:
           push: true
           file: src/main/docker/Dockerfile.jvm
           tags: |
-            mouse256/arylic-mqtt:latest
             ghcr.io/mouse256/arylic-mqtt:latest
