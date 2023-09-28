@@ -26,7 +26,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          cache-read-only: false            # TODO remove once merged to main
       - name: Run build with Gradle Wrapper
         run: ./gradlew assemble
 

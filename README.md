@@ -1,5 +1,21 @@
 # arylic-mqtt
 
+This program connects to the TCP API of [Arylic](https://www.arylic.com) devices and exposes them over MQTT.
+
+The project is heavily a work-in-progress, not stable by any means.
+It's also a learning exercise for me to learn kotlin, so the code quality on that
+level may be sub-optimal
+
+## Installation
+Pre-built docker images are available on [github](https://github.com/mouse256/arylic-mqtt/pkgs/container/arylic-mqtt)
+
+A sample systemd service is provided in [systemd-example.service](src/main/docker/systemd-example.service)
+
+## Usage
+TODO
+
+## Development
+
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
@@ -47,14 +63,3 @@ You can then execute your native executable with: `./build/arylic-mqtt-1.0.0-SNA
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/gradle-tooling.
 
-## Related Guides
-
-- Kotlin ([guide](https://quarkus.io/guides/kotlin)): Write your services in Kotlin
-
-## Provided Code
-
-### RESTEasy Reactive
-
-Easily start your Reactive RESTful Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
