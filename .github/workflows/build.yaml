@@ -20,7 +20,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Run build with Gradle Wrapper
-        run: ./gradlew build
+        run: ./gradlew assemble
 
 #      - name: Set up QEMU
 #        uses: docker/setup-qemu-action@v3
