@@ -3,11 +3,13 @@ name: build
 
 'on':
   push:
-    branches:
-      - "build"
+    #branches:
+    #  - "build"
+    tags:
+      - 'v*'
 
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -38,6 +40,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/mouse256/arylic-mqtt
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -45,5 +57,5 @@ jobs:
           platforms: linux/amd64, linux/arm64
           push: true
           file: src/main/docker/Dockerfile.jvm
-          tags: |
-            ghcr.io/mouse256/arylic-mqtt:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
