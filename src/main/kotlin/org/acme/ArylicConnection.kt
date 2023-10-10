@@ -64,17 +64,21 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
     }
 
     fun sendCommand(cmd: SentCommand) {
+        log.debug { "Sending command: ${cmd.javaClass.name} to ${this.host}" }
         synchronized(this) {
+            log.debug { "MSG: ${Helper.bytesToHex(serde.encode(cmd).toByteArray())}" }
             out.write(serde.encode(cmd).toByteArray())
             out.flush()
+            log.debug{ "command sent to ${this.host}" }
         }
     }
 
     fun ping() {
-        synchronized(this) {
-            out.write(byteArrayOf(0x0A))
-            out.flush()
-        }
+        //TODO: seems to break things
+        //synchronized(this) {
+            //out.write(byteArrayOf(ArylicSerde.LF.toByte()))
+            //out.flush()
+        //}
     }
 
     private fun readData(): Boolean {

@@ -40,6 +40,23 @@ sealed interface Command {
         }
     }
 
+    data class Volume(val volume: Int) : SentCommand, ReceiveCommand, CommandHelper() {
+        /**
+         * MCU+VOL+NNN
+         * Get/set volumne. 0 <= NNN <= 100
+         */
+        override fun toPayload(): UByteArray {
+            val volStr = String.format("%03d", volume)
+            log.debug { "VOL to payload: $volStr" }
+
+            return ArylicSerde.MCU + ArylicSerde.PLUS + ArylicSerde.VOL + ArylicSerde.PLUS + volStr.toByteArray().toUByteArray() + ArylicSerde.LF
+        }
+
+        override fun name(): String {
+            return "Volume"
+        }
+    }
+
     data class Data(
         val title: String,
         val artist: String,

@@ -52,10 +52,11 @@ class Mqtt {
             log.info { "No device found with name $deviceName" }
             return msg.ack()
         }
-        when(cmd.lowercase()) {
+        when (cmd.lowercase()) {
             "play" -> device.sendCommand(Command.Play)
             "pause" -> device.sendCommand(Command.Pause)
-            "playpause" -> device.sendCommand(Command.PlayPause)
+            "playpause" -> playpause(msg, device)
+            "volume" -> volume(msg, device)
             "mute" -> device.sendCommand(Command.Mute(true))
             "unmute" -> device.sendCommand(Command.Mute(false))
             "device-info" -> device.sendCommand(Command.DeviceInfoCmd)
@@ -64,5 +65,24 @@ class Mqtt {
             else -> log.info { "Unknown MQTT command: $cmd" }
         }
         return msg.ack()
+    }
+
+    private fun playpause(msg: MqttMessage<ByteArray>, device: ArylicConnection) {
+        val payload = String(msg.payload)
+        when (payload.uppercase()) {
+            "PLAY" -> device.sendCommand(Command.Play)
+            "PAUSE" -> device.sendCommand(Command.Pause)
+            else -> device.sendCommand(Command.PlayPause)
+        }
+    }
+
+    private fun volume(msg: MqttMessage<ByteArray>, device: ArylicConnection) {
+        val payload = String(msg.payload)
+        val volume = payload.toIntOrNull()
+        if (volume == null || volume < 0 || volume > 100) {
+            log.info { "Invalid volume payload, ignoring: $payload" }
+            return
+        }
+        device.sendCommand(Command.Volume(volume))
     }
 }

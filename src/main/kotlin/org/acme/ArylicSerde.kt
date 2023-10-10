@@ -28,6 +28,7 @@ class ArylicSerde {
         val PLY_PAUSED = toByteArray("000")
         val PLUS = '+'.code.toUByte()
         val MINUS = '-'.code.toUByte()
+        val AMP = '&'.code.toUByte()
         val LF = '\n'.code.toUByte()
         val MEA = toByteArray("MEA")
         val PLY = toByteArray("PLY")
@@ -146,11 +147,7 @@ class ArylicSerde {
                 }
                 expectPlus(payload, 8)
                 when {
-                    id2.contentEquals(VOL) -> {
-                        log.info { "VOL" }
-                        return
-                    }
-
+                    id2.contentEquals(VOL) -> handleVol(payload, handler)
                     id2.contentEquals(MUT) -> handleMut(payload, handler)
                     id2.contentEquals(MEA) -> handleMea(payload, handler)
                     id2.contentEquals(PLY) -> handlePly(payload, handler)
@@ -166,6 +163,22 @@ class ArylicSerde {
             id1.contentEquals(MCU) -> log.info { "MCU!" }
             else -> log.warn { "Can't parse payload id1: ${payload.asString()}" }
         }
+    }
+
+    /**
+     * AXX+VOL+NNN
+     * Current volume
+     * NNN value between 0 and 100
+     */
+    private fun handleVol(payload: UData, handler: (ReceiveCommand) -> Unit) {
+        val data = payload.next(3)
+        if (data == null) {
+            log.warn { "Can't parse VOL message, too small" }
+            return
+        }
+        val volume = String(data.toByteArray()).toInt()
+        log.info { "Volume set to $volume" }
+        handler.invoke(Command.Volume(volume))
     }
 
     /**
