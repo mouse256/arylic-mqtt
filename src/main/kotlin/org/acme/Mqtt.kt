@@ -20,7 +20,7 @@ class Mqtt {
 
     @Inject
     @Channel("state")
-    private lateinit var emitter: Emitter<ReceiveCommand>
+    private lateinit var emitter: Emitter<Any>
 
     fun setController(controller: Controller) {
         log.info { "Init MQTT" }
@@ -32,9 +32,13 @@ class Mqtt {
     }
 
     fun send(device: String, msg: ReceiveCommand) {
-        val topic = "arylic/state/${device}/${msg.name().lowercase()}"
+        val topic = "arylic/state/${device.lowercase()}/${msg.name().lowercase()}"
         log.info { "Sending to topic: $topic" }
-        return emitter.send(MqttMessage.of(topic, msg))
+        when (msg) {
+            is Command.Volume -> emitter.send(MqttMessage.of(topic, msg.volume))
+            else -> emitter.send(MqttMessage.of(topic, msg))
+        }
+
     }
 
     @Incoming("cmd")
