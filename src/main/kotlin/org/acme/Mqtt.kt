@@ -1,6 +1,7 @@
 package org.acme
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.netty.handler.codec.mqtt.MqttQoS
 import io.smallrye.reactive.messaging.mqtt.MqttMessage
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
@@ -32,11 +33,13 @@ class Mqtt {
     }
 
     fun send(device: String, msg: ReceiveCommand) {
-        val topic = "arylic/state/${device.lowercase()}/${msg.name().lowercase()}"
+        val topicBase = "arylic/state/${device.lowercase()}"
+        val topic = "${topicBase}/${msg.name().lowercase()}"
         log.info { "Sending to topic: $topic" }
         when (msg) {
-            is Command.Volume -> emitter.send(MqttMessage.of(topic, msg.volume))
-            else -> emitter.send(MqttMessage.of(topic, msg))
+            is Command.Volume -> emitter.send(MqttMessage.of(topic, msg.volume, MqttQoS.AT_LEAST_ONCE))
+            is Command.PlayStatus -> emitter.send(MqttMessage.of("${topicBase}/playing", msg.playing, MqttQoS.AT_LEAST_ONCE, true))
+            else -> emitter.send(MqttMessage.of(topic, msg, MqttQoS.AT_LEAST_ONCE))
         }
 
     }
@@ -74,8 +77,14 @@ class Mqtt {
     private fun playpause(msg: MqttMessage<ByteArray>, device: ArylicConnection) {
         val payload = String(msg.payload)
         when (payload.uppercase()) {
-            "PLAY" -> device.sendCommand(Command.Play)
-            "PAUSE" -> device.sendCommand(Command.Pause)
+            "PLAY", "ON" -> {
+                log.info { "Sending play" }
+                device.sendCommand(Command.Play)
+            }
+            "PAUSE", "OFF" -> {
+                log.info { "Sending pause" }
+                device.sendCommand(Command.Pause)
+            }
             else -> device.sendCommand(Command.PlayPause)
         }
     }
