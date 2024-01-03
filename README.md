@@ -12,7 +12,39 @@ Pre-built docker images are available on [github](https://github.com/mouse256/ar
 A sample systemd service is provided in [systemd-example.service](src/main/docker/systemd-example.service)
 
 ## Usage
-TODO
+To run it locally, use the following command to start it
+```
+docker run \
+   --name arylic-mqtt \
+	-e MQTT_HOST=192.168.1.152 \
+	-e MQTT_PORT=1883 \
+	-e ARYLIC_DEVICES_0__IP=192.168.1.73 \
+	-p 8080:8080 \
+  ghcr.io/mouse256/arylic-mqtt:latest
+```
+The following environment variables are supported:
+
+| Variable               | Description                     |
+|------------------------|---------------------------------|
+| MQTT_HOST              | IP address of the MQTT server   |
+| MQTT_PORT              | Port of the MQTT server         | 
+| ARYLIC_DEVICES_0__IP   | IP address of an Arylic device  |
+
+The ARYLIC_DEVICES variable can be repeated multiple times with a different index for multiple devices
+
+## REST API
+There is a (basic) REST api available for debugging purposes.
+| Endpoint                      | Description          |
+|-------------------------------|----------------------|
+| /arylic/{device}/device-info  | get device-info      |
+| /arylic/{device}/mute         | mute                 |
+| /arylic/{device}/unmute       | unmute               |
+| /arylic/{device}/metadata     | get metadata         |
+| /arylic/{device}/status       | get playback status  |
+| /arylic/{device}/play         | play                 |
+| /arylic/{device}/playpause    | toggle play/pause    |
+| /arylic/{device}/pause        | pause                |
+
 
 ## Development
 
