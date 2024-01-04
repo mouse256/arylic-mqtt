@@ -33,7 +33,7 @@ class Controller : ArylicConnection.Callbacks {
             arylicConfig.devices()
                 .forEach { tryConnect(it) }
         }
-        vertx.setPeriodic(1.seconds.inWholeMilliseconds, arylicConfig.pingTimer().toMillis()) { _ ->
+        vertx.setPeriodic(10.seconds.inWholeMilliseconds, arylicConfig.pingTimer().toMillis()) { _ ->
             pingAll()
         }
         mqtt.setController(this)

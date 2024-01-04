@@ -118,9 +118,18 @@ sealed interface Command {
 
     data class PlayStatus(
         val playing: Boolean
-    ) : ReceiveCommand {
+    ) : ReceiveCommand, SentCommand {
         override fun name(): String {
             return "PlayStatus"
+        }
+
+        /**
+         * MCU+PLY+GET
+         * Return PlayStatus
+         */
+        override fun toPayload(): UByteArray {
+            log.debug { "PlayStatus to payload" }
+            return DeviceInfoCmd.merge3cmd(ArylicSerde.MCU, ArylicSerde.PLY, ArylicSerde.GET)
         }
     }
 

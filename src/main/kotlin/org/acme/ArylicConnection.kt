@@ -75,6 +75,8 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
 
     fun ping() {
         //TODO: seems to break things
+        //sendCommand(Command.PlaybackStatus)
+        sendCommand(Command.PlayStatus(true))
         //synchronized(this) {
             //out.write(byteArrayOf(ArylicSerde.LF.toByte()))
             //out.flush()
