@@ -49,7 +49,7 @@ class Controller : ArylicConnection.Callbacks {
             }
         }
 
-        vertx.executeBlocking<Unit> {
+        vertx.executeBlocking<Unit> {prom ->
             try {
                 val port = cfg.port().orElse(8899)
                 log.info { "Adding device \"${cfg.ip()}:$port\"" }
@@ -61,8 +61,10 @@ class Controller : ArylicConnection.Callbacks {
                     .onFailure { log.warn { "Can't fetch initial device-info" } }
                 conn.sendCommand(Command.DeviceInfoCmd)
                 log.info { "Requesting deviceInfo from \"${cfg.ip()}:$port\"" }
+                prom.complete()
             } catch (ex: Exception) {
                 log.warn { "Unable to connect to device ${cfg.ip()}: ${ex.message}" }
+                prom.fail(ex)
             }
         }
     }
