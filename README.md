@@ -45,6 +45,34 @@ There is a (basic) REST api available for debugging purposes.
 | /arylic/{device}/playpause    | toggle play/pause    |
 | /arylic/{device}/pause        | pause                |
 
+## OpenHab
+
+The status published on MQTT can be used in various tool. The following example is on how to use it in OpenHab.
+
+`things/arylic.things`
+```
+Thing mqtt:topic:arylic:Bureau "Arylic Bureau" (mqtt:broker:myBroker) @ "Arylic" {
+  Channels:
+    Type dimmer: volume       [stateTopic="arylic/state/bureau/volume",  commandTopic="arylic/cmd/bureau/volume", min="0", max="100"]
+    Type switch: play         [stateTopic="arylic/state/bureau/playing", commandTopic="arylic/cmd/bureau/playpause", transformationPattern="DSL:truetoon.dsl"]
+}
+```
+
+`transform/truetoon.dsl`
+```
+val output = Boolean.parseBoolean(input)
+if (output) {
+    "ON"
+} else {
+    "OFF"
+}
+```
+
+`items/arylic.items`
+```
+Switch arylic_item_bureau_play       "Audio Bureau play"       {channel="mqtt:topic:arylic:Bureau:play"}
+Dimmer arylic_item_bureau_volume     "Audio Bureau volume"     {channel="mqtt:topic:arylic:Bureau:volume"}
+```
 
 ## Development
 
