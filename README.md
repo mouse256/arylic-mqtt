@@ -16,21 +16,26 @@ To run it locally, use the following command to start it
 ```
 docker run \
    --name arylic-mqtt \
-	-e MQTT_HOST=192.168.1.152 \
-	-e MQTT_PORT=1883 \
-	-e ARYLIC_DEVICES_0__IP=192.168.1.73 \
-	-p 8080:8080 \
+   -e MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_HOST=192.168.1.152 \
+   -e MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_PORT=1883 \
+   -e ARYLIC_DEVICES_0__IP=192.168.1.73 \
+   -p 8080:8080 \
   ghcr.io/mouse256/arylic-mqtt:latest
 ```
 The following environment variables are supported:
 
-| Variable               | Description                     |
-|------------------------|---------------------------------|
-| MQTT_HOST              | IP address of the MQTT server   |
-| MQTT_PORT              | Port of the MQTT server         | 
-| ARYLIC_DEVICES_0__IP   | IP address of an Arylic device  |
+| Variable                                      | Description                    |
+|-----------------------------------------------|--------------------------------|
+| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_HOST     | IP address of the MQTT server  |
+| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_HOST     | Port of the MQTT server        |
+| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_USERNAME | MQTT username (optional)       |
+| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_PASSWORD | MQTT password (optional)       |
+| ARYLIC_DEVICES_0__IP                          | IP address of an Arylic device |
 
 The ARYLIC_DEVICES variable can be repeated multiple times with a different index for multiple devices
+
+All configuration options on the [smallrye mqtt configuration page](https://smallrye.io/smallrye-reactive-messaging/smallrye-reactive-messaging/3.4/mqtt/mqtt.html#_configuration_reference) can be used.
+They need to be prefixed with `MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_` (eg `MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_SSL=true`)
 
 ## REST API
 There is a (basic) REST api available for debugging purposes.
