@@ -16,8 +16,8 @@ To run it locally, use the following command to start it
 ```
 docker run \
    --name arylic-mqtt \
-   -e MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_HOST=192.168.1.152 \
-   -e MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_PORT=1883 \
+   -e MQTT_HOST=192.168.1.152 \
+   -e MQTT_PORT=1883 \
    -e ARYLIC_DEVICES_0__IP=192.168.1.73 \
    -p 8080:8080 \
   ghcr.io/mouse256/arylic-mqtt:latest
@@ -40,6 +40,7 @@ They need to be prefixed with `MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_` (eg `MP_ME
 
 ## REST API
 There is a (basic) REST api available for debugging purposes.
+
 | Endpoint                      | Description          |
 |-------------------------------|----------------------|
 | /arylic/{device}/device-info  | get device-info      |
