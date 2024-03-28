@@ -24,13 +24,14 @@ docker run \
 ```
 The following environment variables are supported:
 
-| Variable                                      | Description                    |
-|-----------------------------------------------|--------------------------------|
-| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_HOST     | IP address of the MQTT server  |
-| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_HOST     | Port of the MQTT server        |
-| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_USERNAME | MQTT username (optional)       |
-| MP_MESSAGING_CONNECTOR_SMALLRYE_MQTT_PASSWORD | MQTT password (optional)       |
-| ARYLIC_DEVICES_0__IP                          | IP address of an Arylic device |
+| Variable             | Description                                                                                                                                                                                      |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| MQTT_HOST            | IP address of the MQTT server                                                                                                                                                                    |
+| MQTT_HOST            | Port of the MQTT server                                                                                                                                                                          |
+| MQTT_USERNAME        | MQTT username (optional)                                                                                                                                                                         |
+| MQTT_PASSWORD        | MQTT password (optional)                                                                                                                                                                         |
+| MQTT_SSL_...         | MQTT SSL options. See [smallrye mqtt configuration page](https://smallrye.io/smallrye-reactive-messaging/smallrye-reactive-messaging/3.4/mqtt/mqtt.html#_configuration_reference)  for options   |
+| ARYLIC_DEVICES_0__IP | IP address of an Arylic device                                                                                                                                                                   |
 
 The ARYLIC_DEVICES variable can be repeated multiple times with a different index for multiple devices
 
