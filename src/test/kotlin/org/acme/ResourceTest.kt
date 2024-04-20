@@ -15,7 +15,6 @@ import jakarta.ws.rs.core.HttpHeaders
 import jakarta.ws.rs.core.MediaType
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.net.URI
@@ -104,7 +103,6 @@ class ResourceTest {
     }
 
     @Test
-    @Disabled
     fun testMetadata() {
         val data = Command.Data("title", "artist", "album", "vendor", 5)
         every { mockConnection.expect(Command.Data::class.java) } returns Future.succeededFuture(data)
@@ -112,7 +110,6 @@ class ResourceTest {
     }
 
     @Test
-    @Disabled
     fun testStatus() {
         val data = Command.PlayInfo(
             "type",

@@ -7,7 +7,6 @@ import io.vertx.core.Future
 import jakarta.inject.Inject
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
-import kotlinx.serialization.Serializable
 
 @Path("/arylic/{device}")
 class ArylicResource {
@@ -21,7 +20,6 @@ class ArylicResource {
         return controller.getConnection(device) ?: throw NotFoundException("Device with name $device not found")
     }
 
-    @Serializable
     data class Muted(val device: String, val muted: Boolean)
 
     @GET
@@ -77,7 +75,6 @@ class ArylicResource {
         return UniHelper.toUni(fut)
     }
 
-    @Serializable
     data class PlayStatusRest(val device: String, val playing: Boolean)
 
     @GET

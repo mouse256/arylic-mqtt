@@ -7,7 +7,6 @@ import jakarta.ws.rs.NotFoundException
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.core.MediaType
-import kotlinx.serialization.Serializable
 
 @Path("/arylic")
 class ArylicResourceToplevel {
@@ -21,7 +20,6 @@ class ArylicResourceToplevel {
         return controller.getConnection(device) ?: throw NotFoundException("Device with name $device not found")
     }
 
-    @Serializable
     data class DeviceRest(val id: String, val host: String)
 
     @GET

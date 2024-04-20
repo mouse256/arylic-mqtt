@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.allopen") version "1.9.22"
-    kotlin("plugin.serialization") version "1.9.22"
+    kotlin("jvm") version "1.9.23"
+    kotlin("plugin.allopen") version "1.9.23"
+    kotlin("plugin.serialization") version "1.9.23"
     id("io.quarkus")
     id("distribution")
 }
@@ -20,22 +20,20 @@ dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
     implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
     implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-resteasy-reactive-kotlin-serialization")
+    implementation("io.quarkus:quarkus-rest-jackson")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkus:quarkus-resteasy-reactive")
+    implementation("io.quarkus:quarkus-rest")
     implementation("io.quarkus:quarkus-jackson")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.github.oshai:kotlin-logging-jvm:6.0.9")
-    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
     implementation("xyz.gianlu.zeroconf:zeroconf:1.3.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
-    //testImplementation("io.kotest:kotest-runner-junit5-jvm:5.6.+")
-    testImplementation("io.kotest:kotest-assertions-core:5.6.+")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.+")
     testImplementation("io.quarkiverse.mockk:quarkus-junit5-mockk:2.1.0")
 }
 
