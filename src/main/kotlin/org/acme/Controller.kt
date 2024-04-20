@@ -41,7 +41,7 @@ class Controller : ArylicConnection.Callbacks {
     fun onStart(@Observes ev: StartupEvent) {
         log.info { "onStart. Discovery time: ${arylicConfig.discoveryTimer()}" }
         vertx.setPeriodic(0, arylicConfig.discoveryTimer().toMillis()) { _ ->
-            log.info { "re-connecting" }
+            log.debug { "re-connecting" }
             arylicConfig.devices()
                 .map { d -> Device(d.ip(), d.port().orElse(Device.DEFAULT_PORT)) }
                 .forEach { tryConnect(it) }
@@ -90,7 +90,7 @@ class Controller : ArylicConnection.Callbacks {
 
 
     private fun tryConnect(cfg: Device) {
-        log.info { "tyyConnect" }
+        log.debug { "tryConnect" }
         synchronized(connections) {
             for (conn in connections) {
                 if (conn.value.device == cfg) {
