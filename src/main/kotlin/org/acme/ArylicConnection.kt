@@ -18,7 +18,7 @@ import kotlin.time.Duration.Companion.seconds
  * https://drive.google.com/file/d/1prKuVjpE0A9nSeNt_YiN5KeQOgkvTB6G/view
  */
 @OptIn(ExperimentalUnsignedTypes::class)
-class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
+class ArylicConnection(val device: Device, socket: Socket, val cb: Callbacks) {
 
     private val log = KotlinLogging.logger {}
 
@@ -38,7 +38,7 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
         }
     }
 
-    constructor(host: String, port: Int, cb: Callbacks) : this(host, createSocket(host, port), cb)
+    constructor(device: Device, cb: Callbacks) : this(device, createSocket(device.host, device.port), cb)
 
     fun setSerde(serde: ArylicSerde) {
         this.serde = serde
@@ -58,18 +58,18 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
                 log.warn(e) { "IO exception" }
             } finally {
                 running = false
-                cb.onDisconnected(host)
+                cb.onDisconnected(device)
             }
         }
     }
 
     fun sendCommand(cmd: SentCommand) {
-        log.debug { "Sending command: ${cmd.javaClass.name} to ${this.host}" }
+        log.debug { "Sending command: ${cmd.javaClass.name} to ${this.device.host}" }
         synchronized(this) {
             log.debug { "MSG: ${Helper.bytesToHex(serde.encode(cmd).toByteArray())}" }
             out.write(serde.encode(cmd).toByteArray())
             out.flush()
-            log.debug{ "command sent to ${this.host}" }
+            log.debug{ "command sent to ${this.device.host}" }
         }
     }
 
@@ -128,6 +128,12 @@ class ArylicConnection(val host: String, socket: Socket, val cb: Callbacks) {
     }
 
     interface Callbacks {
-        fun onDisconnected(host: String)
+        fun onDisconnected(device: Device)
+    }
+}
+
+data class Device(val host: String, val port: Int = DEFAULT_PORT) {
+    companion object {
+        val DEFAULT_PORT = 8899
     }
 }

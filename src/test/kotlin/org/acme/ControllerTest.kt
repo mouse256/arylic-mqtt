@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldNotBe
 import io.netty.handler.codec.mqtt.MqttConnectPayload
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.junit.TestProfile
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
@@ -22,7 +23,8 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalUnsignedTypes::class)
 @QuarkusTest
 @Timeout(value = 10, unit = TimeUnit.SECONDS)
-@QuarkusTestResource(SocketTestResource::class)
+//@QuarkusTestResource(SocketTestResource::class)
+@TestProfile(MockSocketProfile::class)
 class ControllerTest {
     @Inject
     lateinit var controller: Controller

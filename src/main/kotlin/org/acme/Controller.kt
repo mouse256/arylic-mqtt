@@ -1,13 +1,16 @@
 package org.acme
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.quarkus.runtime.ShutdownEvent
 import io.quarkus.runtime.StartupEvent
 import io.vertx.core.Vertx
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
 import jakarta.inject.Inject
-import kotlinx.coroutines.runBlocking
+import xyz.gianlu.zeroconf.Zeroconf
+import java.util.concurrent.Callable
 import kotlin.time.Duration.Companion.seconds
+
 
 @ApplicationScoped
 class Controller : ArylicConnection.Callbacks {
@@ -18,6 +21,14 @@ class Controller : ArylicConnection.Callbacks {
 
     @Inject
     lateinit var arylicConfig: ArylicConfig
+
+    /**
+     * Discovered devices.
+     * Boolean indicates connection status
+     */
+    private val discoveredDevices = mutableSetOf<Device>()
+
+    /** establised connection */
     private val connections = mutableMapOf<String, ArylicConnection>()
 
     @Inject
@@ -25,54 +36,91 @@ class Controller : ArylicConnection.Callbacks {
 
     @Inject
     lateinit var vertx: Vertx
+    var zeroconf: Zeroconf? = null
 
     fun onStart(@Observes ev: StartupEvent) {
-        log.info { "onStart" }
+        log.info { "onStart. Discovery time: ${arylicConfig.discoveryTimer()}" }
         vertx.setPeriodic(0, arylicConfig.discoveryTimer().toMillis()) { _ ->
-            log.debug { "re-connecting" }
+            log.info { "re-connecting" }
             arylicConfig.devices()
+                .map { d -> Device(d.ip(), d.port().orElse(Device.DEFAULT_PORT)) }
                 .forEach { tryConnect(it) }
         }
         vertx.setPeriodic(10.seconds.inWholeMilliseconds, arylicConfig.pingTimer().toMillis()) { _ ->
             pingAll()
         }
         mqtt.setController(this)
+
+        if (arylicConfig.autoDiscovery().enabled().orElse(true)) {
+            discover()
+        } else {
+            log.info { "Auto-discovery disabled" }
+        }
     }
 
-    private fun tryConnect(cfg: ArylicConfig.Device) {
+    fun onStop(@Observes ev: ShutdownEvent) {
+        zeroconf?.close()
+    }
+
+    private fun discover() {
+        log.info { "Starting auto-discovery" }
+        val zc = Zeroconf()
+        zeroconf = zc
+        zc.setUseIpv4(true)
+            .setUseIpv6(false)
+            .addAllNetworkInterfaces()
+
+        // Start discovering
+        val services = zc.discover("linkplay", "tcp", ".local")
+
+        vertx.setPeriodic(1000) {
+            log.debug { "zeroconf devices: ${services.services}" }
+            synchronized(discoveredDevices) {
+                services.services.stream()
+                    .map { d -> Device(d.target) }
+                    .filter { d -> !discoveredDevices.contains(d) }
+                    .forEach { d ->
+                        log.info { "Discovered new device: $d" }
+                        discoveredDevices.add(d)
+                        tryConnect(d)
+                    }
+            }
+        }
+    }
+
+
+    private fun tryConnect(cfg: Device) {
+        log.info { "tyyConnect" }
         synchronized(connections) {
             for (conn in connections) {
-                if (conn.value.host == cfg.ip()) {
-                    log.debug { "Ip ${cfg.ip()} is already connected" }
+                if (conn.value.device == cfg) {
+                    log.debug { "Ip ${cfg.host} is already connected" }
                     return
                 }
             }
         }
 
-        vertx.executeBlocking<Unit> {prom ->
+        vertx.executeBlocking(Callable {
             try {
-                val port = cfg.port().orElse(8899)
-                log.info { "Adding device \"${cfg.ip()}:$port\"" }
-                val conn = ArylicConnection(cfg.ip(), port, this@Controller)
+                log.info { "Connecting to device on \"${cfg.host}:${cfg.port}\"" }
+                val conn = ArylicConnection(cfg, this@Controller)
                 conn.setSerde(serde)
                 conn.startDataReader()
                 conn.expect(Command.DeviceInfo::class.java)
                     .onSuccess { addDevice(conn, it) }
                     .onFailure { log.warn { "Can't fetch initial device-info" } }
                 conn.sendCommand(Command.DeviceInfoCmd)
-                log.info { "Requesting deviceInfo from \"${cfg.ip()}:$port\"" }
-                prom.complete()
+                log.info { "Requesting deviceInfo from \"${cfg.host}:${cfg.port}\"" }
             } catch (ex: Exception) {
-                log.warn { "Unable to connect to device ${cfg.ip()}: ${ex.message}" }
-                prom.fail(ex)
+                log.warn { "Unable to connect to device ${cfg.host}: ${ex.message}" }
             }
-        }
+        })
     }
 
     private fun pingAll() {
         log.debug { "pinging devices" }
         synchronized(connections) {
-            connections.forEach{
+            connections.forEach {
                 log.debug { "Pinging ${it.key}" }
                 it.value.ping()
             }
@@ -80,7 +128,7 @@ class Controller : ArylicConnection.Callbacks {
     }
 
     private fun addDevice(conn: ArylicConnection, deviceInfo: Command.DeviceInfo) {
-        log.info { "Discovered device ${deviceInfo.name} with ip \"${conn.host}\"" }
+        log.info { "Connected to device ${deviceInfo.name} on \"${conn.device.host}\"" }
         conn.setHandler { cmd -> mqtt.handle(deviceInfo.name, cmd) }
         synchronized(connections) {
             connections[deviceInfo.name.lowercase()] = conn
@@ -93,12 +141,21 @@ class Controller : ArylicConnection.Callbacks {
         }
     }
 
-
-    override fun onDisconnected(host: String) {
-        log.info { "onDisconnected: $host" }
+    fun getConnections(): Map<String, ArylicConnection> {
         synchronized(connections) {
-            val name = connections.filter { e -> e.value.host == host }.map { e -> e.key }.firstOrNull()
+            return connections.toMap()
+        }
+    }
+
+
+    override fun onDisconnected(device: Device) {
+        log.info { "onDisconnected: ${device.host}" }
+        synchronized(connections) {
+            val name = connections.filter { e -> e.value.device == device }.map { e -> e.key }.firstOrNull()
             name?.let { connections.remove(it) }
+        }
+        synchronized(discoveredDevices) {
+            discoveredDevices.remove(device)
         }
     }
 

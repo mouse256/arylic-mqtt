@@ -4,6 +4,7 @@ package org.acme
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.Serializable
 
 private val log = KotlinLogging.logger {}
 
@@ -70,6 +71,7 @@ sealed interface Command {
         }
     }
 
+    @Serializable
     data class DeviceInfo(
         ////AXX+DEV+INFSoundSystem_B706;release;Bureau;;0;0;0&
         val apSsid: String,

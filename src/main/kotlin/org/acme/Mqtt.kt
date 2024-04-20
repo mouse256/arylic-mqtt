@@ -2,12 +2,15 @@ package org.acme
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.netty.handler.codec.mqtt.MqttQoS
+import io.smallrye.config.ConfigMapping
+import io.smallrye.config.WithDefault
 import io.smallrye.reactive.messaging.mqtt.MqttMessage
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.eclipse.microprofile.reactive.messaging.Channel
 import org.eclipse.microprofile.reactive.messaging.Emitter
 import org.eclipse.microprofile.reactive.messaging.Incoming
+import java.util.*
 import java.util.concurrent.CompletionStage
 import java.util.regex.Pattern
 
@@ -98,4 +101,11 @@ class Mqtt {
         }
         device.sendCommand(Command.Volume(volume))
     }
+}
+
+
+@ConfigMapping(prefix = "mqtt")
+interface MqttConfig {
+    @WithDefault("true")
+    fun enabled(): Boolean
 }
