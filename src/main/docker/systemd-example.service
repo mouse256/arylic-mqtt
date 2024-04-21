@@ -8,12 +8,14 @@ TimeoutStartSec=0
 ExecStartPre=-/usr/bin/docker kill arylic-mqtt
 ExecStartPre=-/usr/bin/docker rm arylic-mqtt
 ExecStart=/usr/bin/docker run \
-        --name arylic-mqtt \
-	-e MQTT_HOST=192.168.1.152 \
-	-e MQTT_PORT=1883 \
-	-e arylic_devices_0__ip=192.168.1.73 \
-	-p 8085:8080 \
-        ghcr.io/mouse256/arylic-mqtt:latest
+      --name arylic-mqtt \
+      --net host \
+      -e MQTT_HOST=192.168.1.152 \
+      -e MQTT_PORT=1883 \
+      -e QUARKUS_HTTP_PORT=8080 \
+      -v /var/run/dbus:/var/run/dbus \
+      -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket \
+      ghcr.io/mouse256/arylic-mqtt:latest
 Restart=always
 RestartSec=5
 
