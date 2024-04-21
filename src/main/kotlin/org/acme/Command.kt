@@ -2,6 +2,7 @@
 
 package org.acme
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
 

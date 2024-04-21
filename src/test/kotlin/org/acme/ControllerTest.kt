@@ -1,20 +1,20 @@
 package org.acme
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.netty.handler.codec.mqtt.MqttConnectPayload
-import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.junit.TestProfile
 import jakarta.inject.Inject
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.lang.RuntimeException
-import java.net.ServerSocket
 import java.net.SocketException
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
@@ -22,7 +22,7 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalUnsignedTypes::class)
 @QuarkusTest
 @Timeout(value = 10, unit = TimeUnit.SECONDS)
-@QuarkusTestResource(SocketTestResource::class)
+@TestProfile(MockSocketProfile::class)
 class ControllerTest {
     @Inject
     lateinit var controller: Controller
@@ -63,12 +63,12 @@ class ControllerTest {
             log.info { "Socket connected" }
             outStream = BufferedOutputStream(socket.getOutputStream())
             inStream = BufferedInputStream(socket.getInputStream())
-            running=true
+            running = true
             try {
                 while (running) {
                     readData(inStream!!)
                 }
-            }catch (ex: SocketException) {
+            } catch (ex: SocketException) {
                 if (running) {
                     throw RuntimeException("Did not expect socket exception at this point", ex)
                 }
@@ -113,8 +113,9 @@ class ControllerTest {
         log.debug { "encoded payload: " + Helper.bytesToHex(data) }
         return data
     }
+
     fun closeSocket() {
-        running =false
+        running = false
         inStream?.close()
         outStream?.close()
         ss.close()

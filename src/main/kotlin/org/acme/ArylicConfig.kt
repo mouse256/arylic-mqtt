@@ -10,12 +10,17 @@ interface ArylicConfig {
 
     fun discoveryTimer(): java.time.Duration
     fun pingTimer(): java.time.Duration
+    fun autoDiscovery(): AutoDiscovery
 
     interface Device {
         //fun name(): String
         fun ip(): String
 
         fun port(): Optional<Int>
+    }
+
+    interface AutoDiscovery {
+        fun enabled(): Optional<Boolean>
     }
 
 }
