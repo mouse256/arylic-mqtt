@@ -33,7 +33,7 @@ dependencies {
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
-    testImplementation("io.kotest:kotest-assertions-core:5.8.+")
+    testImplementation("io.kotest:kotest-assertions-core:5.9.+")
     testImplementation("io.quarkiverse.mockk:quarkus-junit5-mockk:2.1.0")
 }
 
