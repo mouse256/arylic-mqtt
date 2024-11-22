@@ -1,13 +1,16 @@
 ---
-name: build
+name: Run Tests
 
-'on':
-  push:
-    branches:
-      - "main"
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - labeled
 
 jobs:
   build:
+    if: github.actor == 'dependabot[bot]' || github.actor == 'mouse256' || github.event.label.name == 'queued'
     runs-on: ubuntu-latest
     permissions:
       packages: write
