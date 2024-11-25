@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
-    kotlin("plugin.allopen") version "2.0.21"
-    kotlin("plugin.serialization") version "2.0.21"
-    id("io.quarkus")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.allopen)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.quarkus)
     id("distribution")
 }
 
@@ -11,13 +11,9 @@ repositories {
     mavenCentral()
 }
 
-val quarkusPlatformGroupId: String by project
-val quarkusPlatformArtifactId: String by project
-val quarkusPlatformVersion: String by project
-
 dependencies {
+    implementation(enforcedPlatform(libs.quarkus.bom))
     implementation("io.quarkus:quarkus-container-image-docker")
-    implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
     implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-rest-jackson")
@@ -27,14 +23,13 @@ dependencies {
     implementation("io.quarkus:quarkus-rest")
     implementation("io.quarkus:quarkus-jackson")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
-    implementation("xyz.gianlu.zeroconf:zeroconf:1.3.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation(libs.kotlin.logging.jvm)
+    implementation(libs.zeroconf)
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
-    testImplementation("io.kotest:kotest-assertions-core:5.9.+")
-    testImplementation("io.quarkiverse.mockk:quarkus-junit5-mockk:3.0.0")
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.mockk)
 }
 
 group = "org.acme"
