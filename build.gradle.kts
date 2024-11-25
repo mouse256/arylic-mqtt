@@ -27,7 +27,7 @@ dependencies {
     implementation("io.quarkus:quarkus-rest")
     implementation("io.quarkus:quarkus-jackson")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("io.github.oshai:kotlin-logging-jvm:6.0.9")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
     implementation("xyz.gianlu.zeroconf:zeroconf:1.3.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
