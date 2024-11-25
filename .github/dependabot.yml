@@ -1,13 +1,16 @@
 version: 2
 updates:
-    - package-ecosystem: "gradle"
-      directory: "/"
-      schedule:
-          interval: "weekly"
-      rebase-strategy: "disabled"
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "enabled"
+    ignore:
+      - dependency-name: "quarkus"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
-    - package-ecosystem: "github-actions"
-      directory: "/"
-      schedule:
-          interval: "weekly"
-      rebase-strategy: "disabled"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "enabled"
