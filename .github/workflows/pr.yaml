@@ -31,8 +31,6 @@ jobs:
         run: ./gradlew check
       - name: Auto Merge
         if: ${{ github.actor == 'dependabot[bot]' }} # Ensure this only applies to Dependabot PRs
-        uses: peter-evans/auto-merge-action@v2
-        with:
-          pull-request-number: ${{ github.event.pull_request.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: rebase
+        run: gh pr merge --rebase --auto ${{ github.event.pull_request.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
