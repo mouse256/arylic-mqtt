@@ -4,7 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    rebase-strategy: "enabled"
+    rebase-strategy: "auto"
     ignore:
       - dependency-name: "quarkus"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
@@ -13,4 +13,4 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    rebase-strategy: "enabled"
+    rebase-strategy: "auto"
