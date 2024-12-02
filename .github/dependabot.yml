@@ -8,6 +8,8 @@ updates:
     ignore:
       - dependency-name: "quarkus"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "quarkus-bom"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
