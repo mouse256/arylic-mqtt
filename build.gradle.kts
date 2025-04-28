@@ -14,7 +14,7 @@ repositories {
 dependencies {
     implementation(enforcedPlatform(libs.quarkus.bom))
     implementation("io.quarkus:quarkus-container-image-docker")
-    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
+    implementation("io.quarkus:quarkus-messaging-mqtt")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-rest-jackson")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
