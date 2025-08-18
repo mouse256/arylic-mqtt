@@ -43,7 +43,7 @@ class Controller : ArylicConnection.Callbacks {
         vertx.setPeriodic(0, arylicConfig.discoveryTimer().toMillis()) { _ ->
             log.debug { "re-connecting" }
             arylicConfig.devices()
-                .map { d -> Device(d.ip(), d.port().orElse(Device.DEFAULT_PORT)) }
+                .map { d -> Device(d.ip(), "unkown", d.port().orElse(Device.DEFAULT_PORT)) }
                 .forEach { tryConnect(it) }
         }
         vertx.setPeriodic(10.seconds.inWholeMilliseconds, arylicConfig.pingTimer().toMillis()) { _ ->
@@ -76,16 +76,21 @@ class Controller : ArylicConnection.Callbacks {
         vertx.setPeriodic(1000) {
             log.debug { "zeroconf devices: ${services.services}" }
             synchronized(discoveredDevices) {
-                services.services.stream()
-                    .map { d -> Device(d.target) }
+                services.services.toList().stream()
+                    .map { d -> Device(d.target, d.name) }
                     .filter { d -> !discoveredDevices.contains(d) }
                     .forEach { d ->
                         log.info { "Discovered new device: $d" }
                         discoveredDevices.add(d)
+                        sendHomeAssistantDiscovery(d)
                         tryConnect(d)
                     }
             }
         }
+    }
+
+    private fun sendHomeAssistantDiscovery(cfg: Device) {
+        mqtt.sendHomeAssistant(cfg)
     }
 
 

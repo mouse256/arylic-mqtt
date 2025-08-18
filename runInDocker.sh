@@ -4,7 +4,7 @@
 	docker build -f src/main/docker/Dockerfile.jvm -t quarkus/arylic-mqtt-jvm . && \
 	docker run -i --rm \
 	--net host \
-	-e MQTT_HOST=192.168.1.152 \
+	-e MQTT_HOST=192.168.1.215 \
 	-e MQTT_PORT=1883 \
 	-e MQTT_CLIENT_ID=arylic-mqtt-docker \
 	-v /var/run/dbus:/var/run/dbus \

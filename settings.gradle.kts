@@ -8,3 +8,5 @@ pluginManagement {
     }
 }
 rootProject.name="arylic-mqtt"
+
+includeBuild("../homeassistant-discovery")

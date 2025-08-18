@@ -63,7 +63,8 @@ sealed interface Command {
         val artist: String,
         val album: String,
         val vendor: String,
-        @JsonProperty("skiplimit") val skipLimit: Int
+        @field:JsonProperty("skiplimit")
+        val skipLimit: Int
 
     ) : ReceiveCommand {
         override fun name(): String {
@@ -101,11 +102,14 @@ sealed interface Command {
         val eq: String,
         val status: String,
         val curpos: String,
-        @JsonProperty("offset_pts") val offsetPts: String,
+        @field:JsonProperty("offset_pts") val offsetPts: String,
         val totlen: String,
-        @JsonProperty("Title") val title: String,
-        @JsonProperty("Artist") val artist: String,
-        @JsonProperty("Album") val album: String,
+        @field:JsonProperty("Title")
+        val title: String,
+        @field:JsonProperty("Artist")
+        val artist: String,
+        @field:JsonProperty("Album")
+        val album: String,
         val alarmflag: String,
         val plicount: String,
         val plicurr: String,

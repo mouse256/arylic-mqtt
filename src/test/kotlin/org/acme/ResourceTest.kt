@@ -45,7 +45,7 @@ class ResourceTest {
     @BeforeEach
     fun setupMocks() {
         urlDevice = urlArylicToplevel.resolve("arylic/device1/")
-        every { mockConnection.device } returns Device("fakehost.mock")
+        every { mockConnection.device } returns Device("fakehost.mock", "testdevice")
         every { mockController.getConnections() } returns mapOf("device1" to mockConnection)
         every { mockController.getConnection("device1") } returns mockConnection
         every { mockController.getConnection("invalidDevice") } returns null
