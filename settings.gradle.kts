@@ -9,4 +9,5 @@ pluginManagement {
 }
 rootProject.name="arylic-mqtt"
 
-includeBuild("../homeassistant-discovery")
+val haDiscoveryDir = providers.gradleProperty("haDiscoveryDir")
+includeBuild(if (haDiscoveryDir.isPresent) haDiscoveryDir else "../homeassistant-discovery")

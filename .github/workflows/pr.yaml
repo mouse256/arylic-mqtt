@@ -34,7 +34,7 @@ jobs:
         with:
           gradle-version: wrapper
       - name: Run build with Gradle Wrapper
-        run: ./gradlew check
+        run: ./gradlew check -PhaDiscoveryDir=homeassistant-discovery
       - name: Auto Merge
         if: ${{ github.actor == 'dependabot[bot]' }} # Ensure this only applies to Dependabot PRs
         run: gh pr merge --rebase --auto ${{ github.event.pull_request.number }}
