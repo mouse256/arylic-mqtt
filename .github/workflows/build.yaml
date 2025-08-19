@@ -15,6 +15,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: homeassistant-discovery
+          repository: mouse256/homeassistant-discovery
 
       - uses: actions/setup-java@v4
         with:
@@ -26,4 +31,4 @@ jobs:
           gradle-version: wrapper
           dependency-graph: generate-and-submit
       - name: Run build with Gradle Wrapper
-        run: ./gradlew check
+        run: ./gradlew check -PhaDiscoveryDir=homeassistant-discovery
