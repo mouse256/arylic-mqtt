@@ -18,7 +18,12 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: homeassistant-discovery
+          repository: mouse256/homeassistant-discovery
 
       - uses: actions/setup-java@v4
         with:
