@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          path: homeassistant-discovery
+          path: ../homeassistant-discovery
           repository: mouse256/homeassistant-discovery
 
       - uses: actions/setup-java@v4
@@ -34,7 +34,7 @@ jobs:
         with:
           gradle-version: wrapper
       - name: Run build with Gradle Wrapper
-        run: ./gradlew check -PhaDiscoveryDir=homeassistant-discovery
+        run: ./gradlew check
       - name: Auto Merge
         if: ${{ github.actor == 'dependabot[bot]' }} # Ensure this only applies to Dependabot PRs
         run: gh pr merge --rebase --auto ${{ github.event.pull_request.number }}
