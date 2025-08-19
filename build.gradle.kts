@@ -25,6 +25,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation(libs.kotlin.logging.jvm)
     implementation(libs.zeroconf)
+    implementation("org.muizenhol:homeassistant-discovery:1.0.0")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
@@ -36,8 +37,8 @@ group = "org.acme"
 version = "1.0.0-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.withType<Test> {
@@ -53,7 +54,7 @@ allOpen {
 tasks
     .withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>()
     .configureEach {
-        compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         compilerOptions.javaParameters = true
     }
 

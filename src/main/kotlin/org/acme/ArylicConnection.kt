@@ -132,7 +132,7 @@ class ArylicConnection(val device: Device, socket: Socket, val cb: Callbacks) {
     }
 }
 
-data class Device(val host: String, val port: Int = DEFAULT_PORT) {
+data class Device(val host: String, val name: String, val port: Int = DEFAULT_PORT) {
     companion object {
         val DEFAULT_PORT = 8899
     }
