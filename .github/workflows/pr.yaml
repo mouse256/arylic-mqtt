@@ -25,7 +25,7 @@ jobs:
           path: homeassistant-discovery
           repository: mouse256/homeassistant-discovery
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'corretto'
           java-version: '21'
