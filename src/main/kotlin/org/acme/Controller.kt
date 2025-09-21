@@ -76,8 +76,13 @@ class Controller : ArylicConnection.Callbacks {
         vertx.setPeriodic(1000) {
             log.debug { "zeroconf devices: ${services.services}" }
             synchronized(discoveredDevices) {
-                services.services.toList().stream()
+                val newDiscoved = services.services.toList().stream()
                     .map { d -> Device(d.target, d.name) }
+                    .toList()
+                log.debug { "1: Existing devices: $discoveredDevices -- Discovered devices: $newDiscoved" }
+
+                //new ones
+                newDiscoved
                     .filter { d -> !discoveredDevices.contains(d) }
                     .forEach { d ->
                         log.info { "Discovered new device: $d" }
@@ -85,6 +90,22 @@ class Controller : ArylicConnection.Callbacks {
                         sendHomeAssistantDiscovery(d)
                         tryConnect(d)
                     }
+
+                //lost devices
+                discoveredDevices
+                    .filter { d -> !discoveredDevices.contains(d) }
+                    .forEach { d -> log.info { "Lost device: $d" } }
+                //seems to happen from time to time. Remove if we get a connection lost exception.
+//                    .removeIf { d ->
+//                        if (!newDiscoved.contains(d)) {
+//                            log.debug { "2: Existing devices: $discoveredDevices -- Discovered devices: $newDiscoved" }
+//                            log.info { "Lost device: $d" }
+//                            mqtt.sendAvailability(d.name.lowercase(), false)
+//                            true
+//                        } else {
+//                            false
+//                        }
+//                   }
             }
         }
     }
@@ -134,6 +155,7 @@ class Controller : ArylicConnection.Callbacks {
 
     private fun addDevice(conn: ArylicConnection, deviceInfo: Command.DeviceInfo) {
         log.info { "Connected to device ${deviceInfo.name} on \"${conn.device.host}\"" }
+        mqtt.sendAvailability(deviceInfo.name.lowercase(), true)
         conn.setHandler { cmd -> mqtt.handle(deviceInfo.name, cmd) }
         synchronized(connections) {
             connections[deviceInfo.name.lowercase()] = conn
@@ -161,6 +183,7 @@ class Controller : ArylicConnection.Callbacks {
         }
         synchronized(discoveredDevices) {
             discoveredDevices.remove(device)
+            mqtt.sendAvailability(device.name.lowercase(), false)
         }
     }
 

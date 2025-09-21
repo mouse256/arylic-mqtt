@@ -11,6 +11,7 @@ import org.eclipse.microprofile.reactive.messaging.Channel
 import org.eclipse.microprofile.reactive.messaging.Emitter
 import org.eclipse.microprofile.reactive.messaging.Incoming
 import org.muizenhol.homeassistant.discovery.Discovery
+import org.muizenhol.homeassistant.discovery.component.Availability
 import org.muizenhol.homeassistant.discovery.component.Light
 import org.muizenhol.homeassistant.discovery.component.Switch
 import java.util.concurrent.CompletionStage
@@ -56,6 +57,20 @@ class Mqtt {
         }
     }
 
+    fun sendAvailability(device: String, availability: Boolean) {
+        val topic = "arylic/state/${device.lowercase()}/availability"
+        log.info { "Sending availibility ${availability} to topic: $topic" }
+        emitter.send(
+            MqttMessage.of(
+                "$topic",
+                if (availability) "online" else "offline",
+                MqttQoS.AT_LEAST_ONCE,
+                true
+            )
+        )
+    }
+
+
     fun sendHomeAssistant(device: Device) {
         log.info { "Sending homeAssistant discovery" }
         //there is no native support for an audio device via mqtt in HomeAssitant
@@ -81,6 +96,7 @@ class Mqtt {
             .withStateTopic("${topicPrefixState}/playing")
             .withPayloadOn("true")
             .withPayloadOff("false")
+            .withAvailability(Availability.Builder().withTopic("${topicPrefixState}/availability").build())
             .build()
 
         val volume = Light.Builder()
@@ -95,6 +111,7 @@ class Mqtt {
             .withBrightnessStateTopic("${topicPrefixState}/volume")
             .withBrightnessCommandTopic("${topicPrefixCmd}/volume")
             .withOnCommandType("brightness")
+            .withAvailability(Availability.Builder().withTopic("${topicPrefixState}/availability").build())
             .build()
 
 
