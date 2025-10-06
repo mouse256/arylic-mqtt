@@ -30,7 +30,7 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: wrapper
       - name: Run build with Gradle Wrapper
