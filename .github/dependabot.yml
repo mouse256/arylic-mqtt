@@ -5,9 +5,6 @@ updates:
     schedule:
       interval: "weekly"
     rebase-strategy: "auto"
-    ignore:
-      - dependency-name: "io.quarkus:*"
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
