@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/mouse256/arylic-mqtt
+          images: ghcr.io/${{ github.repository }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -60,6 +60,28 @@ jobs:
           context: .
           platforms: linux/amd64, linux/arm64
           push: true
-          file: src/main/docker/Dockerfile.jvm
+          file: Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Docker meta Scratch
+        id: meta-scratch
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          flavor: |
+            latest=auto
+            suffix=-scratch,onlatest=true
+      - name: Build and push scratch image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64, linux/arm64
+          push: true
+          file: Dockerfile-scratch
+          tags: ${{ steps.meta-scratch.outputs.tags }}
+          labels: ${{ steps.meta-scratch.outputs.labels }}
