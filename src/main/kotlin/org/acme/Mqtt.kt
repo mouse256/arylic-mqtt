@@ -123,6 +123,7 @@ class Mqtt {
                 "arylic",
                 model,
                 "MusicPlayer ${device.name}",
+                null
             ),
             Discovery.Origin(
                 "arylic-mqtt"
