@@ -76,29 +76,35 @@ class ArylicConnection(val device: Device, socket: Socket, val cb: Callbacks) {
     }
 
     /**
-     * Mirrors the 4Stream app's "custom radio" feature: a plain HTTP GET of
-     * `setPlayerCmd:play:{url}` where the URL is percent-encoded like Android's `Uri.encode()`.
+     * Plays a stream URL via the standard UPnP AVTransport renderer (port 49152), which works on all
+     * devices, including secure-mode ones (e.g. H50) that don't expose the plain HTTP API.
      */
     fun playStream(url: String) {
-        val requestUrl = "http://${device.host}/httpapi.asp?command=setPlayerCmd:play:${uriEncode(url)}"
-        log.info { "Playing stream: $requestUrl" }
-        val conn = URL(requestUrl).openConnection() as HttpURLConnection
-        conn.connectTimeout = 5.seconds.inWholeMilliseconds.toInt()
-        conn.readTimeout = 10.seconds.inWholeMilliseconds.toInt()
-        try {
-            val body = conn.inputStream.bufferedReader().use { it.readText() }
-            log.info { "Stream response (${conn.responseCode}): $body" }
-        } finally {
-            conn.disconnect()
-        }
+        val escapedUrl = url.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        log.info { "Playing stream via UPnP AVTransport: $url" }
+        upnpAvTransport("SetAVTransportURI", "<InstanceID>0</InstanceID><CurrentURI>$escapedUrl</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>")
+        upnpAvTransport("Play", "<InstanceID>0</InstanceID><Speed>1</Speed>")
     }
 
-    /** Equivalent of android.net.Uri.encode(): percent-encodes everything except `A-Za-z0-9_-!.~'()*`. */
-    private fun uriEncode(s: String): String = buildString {
-        for (b in s.toByteArray(Charsets.UTF_8)) {
-            val c = b.toInt().toChar()
-            if (c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9' || c in "_-!.~'()*") append(c)
-            else append('%').append("%02X".format(b.toInt() and 0xff))
+    private fun upnpAvTransport(action: String, args: String) {
+        val serviceType = "urn:schemas-upnp-org:service:AVTransport:1"
+        val soap = """<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$args</u:$action></s:Body></s:Envelope>"""
+        val conn = URL("http://${device.host}:49152/upnp/control/rendertransport1").openConnection() as HttpURLConnection
+        conn.connectTimeout = 5.seconds.inWholeMilliseconds.toInt()
+        conn.readTimeout = 10.seconds.inWholeMilliseconds.toInt()
+        conn.requestMethod = "POST"
+        conn.setRequestProperty("Content-Type", "text/xml; charset=\"utf-8\"")
+        conn.setRequestProperty("SOAPAction", "\"$serviceType#$action\"")
+        conn.doOutput = true
+        try {
+            conn.outputStream.use { it.write(soap.toByteArray(Charsets.UTF_8)) }
+            if (conn.responseCode != 200) {
+                val err = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                throw IOException("UPnP $action failed (${conn.responseCode}): $err")
+            }
+            log.debug { "UPnP $action OK" }
+        } finally {
+            conn.disconnect()
         }
     }
 
