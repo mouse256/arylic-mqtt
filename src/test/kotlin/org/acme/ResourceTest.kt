@@ -13,6 +13,7 @@ import io.vertx.core.Future
 import jakarta.inject.Inject
 import jakarta.ws.rs.core.HttpHeaders
 import jakarta.ws.rs.core.MediaType
+import org.hamcrest.CoreMatchers.anyOf
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -74,13 +75,12 @@ class ResourceTest {
             .statusCode(404)
     }
 
-    private fun deviceOk(path: String, res: Any) {
+    private fun deviceOk(path: String, res: Any, post: Boolean = false) {
         val resAsString = objectMapper.writeValueAsString(res)
         val url = urlDevice.resolve(path)
         log.debug { "url: $url" }
-        RestAssured.given()
-            .`when`()
-            .get(url)
+        val request = RestAssured.given().`when`()
+        (if (post) request.post(url) else request.get(url))
             .then()
             .statusCode(200)
             .header(HttpHeaders.CONTENT_TYPE, "${MediaType.APPLICATION_JSON};charset=UTF-8")
@@ -94,12 +94,12 @@ class ResourceTest {
 
     @Test
     fun testMute() {
-        deviceOk("mute", ArylicResource.Muted("device1", true))
+        deviceOk("mute", ArylicResource.Muted("device1", true), post = true)
     }
 
     @Test
     fun testUnmute() {
-        deviceOk("unmute", ArylicResource.Muted("device1", false))
+        deviceOk("unmute", ArylicResource.Muted("device1", false), post = true)
     }
 
     @Test
@@ -139,18 +139,32 @@ class ResourceTest {
         val data = Command.PlayStatus(true)
         every { mockConnection.expect(Command.PlayStatus::class.java) } returns Future.succeededFuture(data)
         val res = ArylicResource.PlayStatusRest("device1", true)
-        deviceOk("playpause", res)
+        deviceOk("playpause", res, post = true)
     }
 
     @Test
     fun testPlay() {
         val data = ArylicResource.PlayStatusRest("device1", true)
-        deviceOk("play", data)
+        deviceOk("play", data, post = true)
     }
 
     @Test
     fun testPause() {
         val data = ArylicResource.PlayStatusRest("device1", false)
-        deviceOk("pause", data)
+        deviceOk("pause", data, post = true)
+    }
+
+    @Test
+    fun testPreset() {
+        deviceOk("preset/3", mapOf("device" to "device1", "preset" to 3), post = true)
+    }
+
+    @Test
+    fun testStateChangeRejectsGet() {
+        RestAssured.given()
+            .`when`()
+            .get(urlDevice.resolve("mute"))
+            .then()
+            .statusCode(anyOf(`is`(404), `is`(405)))
     }
 }

@@ -58,6 +58,22 @@ sealed interface Command {
         }
     }
 
+    data class Preset(val preset: Int) : SentCommand, ReceiveCommand, CommandHelper() {
+        /**
+         * MCU+KEY+NNN
+         * Play preset NNN (001 <= NNN <= 010), will return AXX+KEY+NNN
+         */
+        override fun toPayload(): UByteArray {
+            val presetStr = String.format("%03d", preset)
+            log.debug { "KEY to payload: $presetStr" }
+            return merge3cmd(ArylicSerde.MCU, ArylicSerde.KEY, presetStr.toByteArray().toUByteArray())
+        }
+
+        override fun name(): String {
+            return "Preset"
+        }
+    }
+
     data class Data(
         val title: String,
         val artist: String,

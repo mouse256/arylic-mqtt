@@ -44,6 +44,7 @@ class Mqtt {
         log.info { "Sending to topic: $topic" }
         when (msg) {
             is Command.Volume -> emitter.send(MqttMessage.of(topic, msg.volume, MqttQoS.AT_LEAST_ONCE))
+            is Command.Preset -> emitter.send(MqttMessage.of(topic, msg.preset, MqttQoS.AT_LEAST_ONCE))
             is Command.PlayStatus -> emitter.send(
                 MqttMessage.of(
                     "${topicBase}/playing",
@@ -160,6 +161,7 @@ class Mqtt {
             "pause" -> device.sendCommand(Command.Pause)
             "playpause" -> playpause(msg, device)
             "volume" -> volume(msg, device)
+            "preset" -> preset(msg, device)
             "mute" -> device.sendCommand(Command.Mute(true))
             "unmute" -> device.sendCommand(Command.Mute(false))
             "device-info" -> device.sendCommand(Command.DeviceInfoCmd)
@@ -195,6 +197,16 @@ class Mqtt {
             return
         }
         device.playStream(url)
+    }
+
+    private fun preset(msg: MqttMessage<ByteArray>, device: ArylicConnection) {
+        val payload = String(msg.payload).trim()
+        val preset = payload.toIntOrNull()
+        if (preset == null || preset < 1 || preset > 10) {
+            log.info { "Invalid preset payload, ignoring: $payload" }
+            return
+        }
+        device.sendCommand(Command.Preset(preset))
     }
 
     private fun volume(msg: MqttMessage<ByteArray>, device: ArylicConnection) {

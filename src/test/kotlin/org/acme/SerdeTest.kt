@@ -92,6 +92,32 @@ class SerdeTest {
     }
 
     @Test
+    fun encodePreset() {
+        serde.encode(Command.Preset(1)).shouldBe(
+            stringToUByte(
+                "18 96 18 20 0C 00 00 00 BF 02 00 00 00 00 00 00 00 00 00 00 4D 43 55 2B 4B 45 59 2B 30 30 31 0A"
+            )
+        )
+        serde.encode(Command.Preset(10)).shouldBe(
+            stringToUByte(
+                "18 96 18 20 0C 00 00 00 BF 02 00 00 00 00 00 00 00 00 00 00 4D 43 55 2B 4B 45 59 2B 30 31 30 0A"
+            )
+        )
+    }
+
+    @Test
+    fun testDecodePreset() {
+        val data =
+            stringToUByte("18 96 18 20 0C 00 00 00 CD 02 00 00 00 00 00 00 00 00 00 00 41 58 58 2B 4B 45 59 2B 30 30 33 0A")
+        var handlerCalled = false
+        serde.decode(UData(data)) {
+            it.shouldBe(Command.Preset(3))
+            handlerCalled = true
+        }
+        handlerCalled.shouldBe(true)
+    }
+
+    @Test
     fun encodeDeviceInfo() {
         serde.encode(Command.DeviceInfoCmd).shouldBe(
             stringToUByte(
