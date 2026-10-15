@@ -77,9 +77,9 @@ Vert.x event loop + worker threads (Quarkus defaults) plus one `DataReader` daem
 
 ### Internet stream playback
 
-Stream playback uses the device's **HTTP API** (port 80), not the TCP binary protocol. `ArylicConnection.playStream(url)` hex-encodes the URL byte-by-byte and calls:
+Stream playback uses the device's **HTTP API** (port 80), not the TCP binary protocol. `ArylicConnection.playStream(url)` percent-encodes the URL (Android `Uri.encode()` semantics, as the 4Stream app does) and calls:
 ```
-GET http://{host}/httpapi.asp?command=setPlayerCmd:play:{hex_url}
+GET http://{host}/httpapi.asp?command=setPlayerCmd:play:{encoded_url}
 ```
 
 - MQTT command: publish the stream URL to `arylic/cmd/{device}/stream`

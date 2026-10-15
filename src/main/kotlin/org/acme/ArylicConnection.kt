@@ -8,8 +8,10 @@ import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.IOException
+import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.URL
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -70,6 +72,33 @@ class ArylicConnection(val device: Device, socket: Socket, val cb: Callbacks) {
             out.write(serde.encode(cmd).toByteArray())
             out.flush()
             log.debug{ "command sent to ${this.device.host}" }
+        }
+    }
+
+    /**
+     * Mirrors the 4Stream app's "custom radio" feature: a plain HTTP GET of
+     * `setPlayerCmd:play:{url}` where the URL is percent-encoded like Android's `Uri.encode()`.
+     */
+    fun playStream(url: String) {
+        val requestUrl = "http://${device.host}/httpapi.asp?command=setPlayerCmd:play:${uriEncode(url)}"
+        log.info { "Playing stream: $requestUrl" }
+        val conn = URL(requestUrl).openConnection() as HttpURLConnection
+        conn.connectTimeout = 5.seconds.inWholeMilliseconds.toInt()
+        conn.readTimeout = 10.seconds.inWholeMilliseconds.toInt()
+        try {
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            log.info { "Stream response (${conn.responseCode}): $body" }
+        } finally {
+            conn.disconnect()
+        }
+    }
+
+    /** Equivalent of android.net.Uri.encode(): percent-encodes everything except `A-Za-z0-9_-!.~'()*`. */
+    private fun uriEncode(s: String): String = buildString {
+        for (b in s.toByteArray(Charsets.UTF_8)) {
+            val c = b.toInt().toChar()
+            if (c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9' || c in "_-!.~'()*") append(c)
+            else append('%').append("%02X".format(b.toInt() and 0xff))
         }
     }
 

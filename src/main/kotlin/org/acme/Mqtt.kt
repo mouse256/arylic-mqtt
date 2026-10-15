@@ -123,7 +123,7 @@ class Mqtt {
                 "arylic",
                 model,
                 "MusicPlayer ${device.name}",
-                null
+                "arylic-mqtt"
             ),
             Discovery.Origin(
                 "arylic-mqtt"
@@ -165,6 +165,7 @@ class Mqtt {
             "device-info" -> device.sendCommand(Command.DeviceInfoCmd)
             "metadata" -> device.sendCommand(Command.PlaybackMetadata)
             "status" -> device.sendCommand(Command.PlaybackStatus)
+            "stream" -> stream(msg, device)
             else -> log.info { "Unknown MQTT command: $cmd" }
         }
         return msg.ack()
@@ -185,6 +186,15 @@ class Mqtt {
 
             else -> device.sendCommand(Command.PlayPause)
         }
+    }
+
+    private fun stream(msg: MqttMessage<ByteArray>, device: ArylicConnection) {
+        val url = String(msg.payload).trim()
+        if (url.isEmpty()) {
+            log.info { "Empty stream URL, ignoring" }
+            return
+        }
+        device.playStream(url)
     }
 
     private fun volume(msg: MqttMessage<ByteArray>, device: ArylicConnection) {

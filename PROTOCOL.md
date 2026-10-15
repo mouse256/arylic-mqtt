@@ -87,10 +87,10 @@ Base URL: `http://{device_ip}/httpapi.asp?command=COMMAND`
 
 **Internet stream playback** (implemented in `ArylicConnection.playStream()`):
 ```
-GET /httpapi.asp?command=setPlayerCmd:play:{hex_url}
+GET /httpapi.asp?command=setPlayerCmd:play:{encoded_url}
 ```
-The URL is hex-encoded: each byte becomes its 2-digit lowercase hex value.
-Example: `http://example.com` → `687474703a2f2f6578616d706c652e636f6d`
+The URL is percent-encoded with Android `Uri.encode()` semantics (everything except `A-Za-z0-9_-!.~'()*` becomes `%XX`). This is what the app's custom-radio feature does (`FragCustomRadioTuneIn` → `action.f.S0`). Devices whose `getStatusEx` reports `security: https` need HTTPS with a client certificate instead.
+Example: `http://example.com/a b` → `http%3A%2F%2Fexample.com%2Fa%20b`
 
 Other HTTP API commands found in the APK (not implemented):
 

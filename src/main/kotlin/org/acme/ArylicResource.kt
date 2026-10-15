@@ -7,6 +7,7 @@ import io.vertx.core.Future
 import jakarta.inject.Inject
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
 
 @Path("/arylic/{device}")
 class ArylicResource {
@@ -109,5 +110,18 @@ class ArylicResource {
         conn.sendCommand(Command.Pause)
 
         return PlayStatusRest(device, false)
+    }
+
+    @POST
+    @Path("stream")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun stream(@PathParam("device") device: String, url: String): Response {
+        log.info { "stream: $url" }
+        if (url.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("error" to "URL must not be empty")).build()
+        }
+        getDevice(device).playStream(url)
+        return Response.ok(mapOf("device" to device, "url" to url)).build()
     }
 }
