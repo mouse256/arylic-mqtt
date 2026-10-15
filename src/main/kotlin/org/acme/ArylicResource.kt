@@ -23,7 +23,7 @@ class ArylicResource {
 
     data class Muted(val device: String, val muted: Boolean)
 
-    @GET
+    @POST
     @Path("mute")
     @Produces(MediaType.APPLICATION_JSON)
     fun mute(@PathParam("device") device: String): Muted {
@@ -32,7 +32,7 @@ class ArylicResource {
         return Muted(device, true)
     }
 
-    @GET
+    @POST
     @Path("unmute")
     @Produces(MediaType.APPLICATION_JSON)
     fun unmute(@PathParam("device") device: String): Muted {
@@ -78,7 +78,7 @@ class ArylicResource {
 
     data class PlayStatusRest(val device: String, val playing: Boolean)
 
-    @GET
+    @POST
     @Path("playpause")
     @Produces(MediaType.APPLICATION_JSON)
     fun playPause(@PathParam("device") device: String): Uni<PlayStatusRest> {
@@ -90,7 +90,7 @@ class ArylicResource {
         return UniHelper.toUni(fut.compose { status -> Future.succeededFuture(PlayStatusRest(device, status.playing)) })
     }
 
-    @GET
+    @POST
     @Path("play")
     @Produces(MediaType.APPLICATION_JSON)
     fun play(@PathParam("device") device: String): PlayStatusRest {
@@ -101,7 +101,7 @@ class ArylicResource {
         return PlayStatusRest(device, true)
     }
 
-    @GET
+    @POST
     @Path("pause")
     @Produces(MediaType.APPLICATION_JSON)
     fun pause(@PathParam("device") device: String): PlayStatusRest {
@@ -123,5 +123,17 @@ class ArylicResource {
         }
         getDevice(device).playStream(url)
         return Response.ok(mapOf("device" to device, "url" to url)).build()
+    }
+
+    @POST
+    @Path("preset/{preset}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun preset(@PathParam("device") device: String, @PathParam("preset") preset: Int): Response {
+        log.info { "preset: $preset" }
+        if (preset < 1 || preset > 10) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(mapOf("error" to "Preset must be between 1 and 10")).build()
+        }
+        getDevice(device).sendCommand(Command.Preset(preset))
+        return Response.ok(mapOf("device" to device, "preset" to preset)).build()
     }
 }

@@ -22,6 +22,7 @@ class ArylicSerde {
         val VOL = toByteArray("VOL")
         val MUT = toByteArray("MUT")
         val DAT = toByteArray("DAT")
+        val KEY = toByteArray("KEY")
         val MUT_MUTE = toByteArray("001")
         val MUT_UNMUTE = toByteArray("000")
         val PLY_PLAYING = toByteArray("001")
@@ -152,6 +153,7 @@ class ArylicSerde {
                     id2.contentEquals(MEA) -> handleMea(payload, handler)
                     id2.contentEquals(PLY) -> handlePly(payload, handler)
                     id2.contentEquals(DEV) -> handleDev(payload, handler)
+                    id2.contentEquals(KEY) -> handleKey(payload, handler)
 
                     else -> {
                         log.warn { "Unknown id2: ${payload.asString()}" }
@@ -179,6 +181,20 @@ class ArylicSerde {
         val volume = String(data.toByteArray()).toInt()
         log.info { "Volume set to $volume" }
         handler.invoke(Command.Volume(volume))
+    }
+
+    /**
+     * AXX+KEY+NNN
+     * Selected preset, NNN value between 001 and 010
+     */
+    private fun handleKey(payload: UData, handler: (ReceiveCommand) -> Unit) {
+        val preset = payload.next(3)?.let { String(it.toByteArray()).toIntOrNull() }
+        if (preset == null) {
+            log.warn { "Can't parse KEY message: ${payload.asString()}" }
+            return
+        }
+        log.info { "Preset $preset selected" }
+        handler.invoke(Command.Preset(preset))
     }
 
     /**

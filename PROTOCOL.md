@@ -52,6 +52,8 @@ Known commands (from APK strings + implementation):
 | `MCU+PINFGET` | → | Request full playback status |
 | `AXX+PLY+INF{json}&` | ← | Full playback info (JSON) |
 | `AXX+MEA+RDY` | ← | Device ready signal |
+| `MCU+KEY+NNN` | → | Play preset NNN (001–010) |
+| `AXX+KEY+NNN` | ← | Selected preset |
 
 **EQ passthrough** (found in APK, not implemented):
 ```

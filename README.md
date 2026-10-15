@@ -76,6 +76,14 @@ State is published on `arylic/state/#`
 
 Commands are to be sent to `arylic/cmd/...`
 
+### Selecting a preset
+
+Publish the preset number (1–10) as payload to `arylic/cmd/{device}/preset`, e.g.:
+```
+mosquitto_pub -t arylic/cmd/bureau/preset -m 3
+```
+The selected preset is published on `arylic/state/{device}/preset`.
+
 ### Playing an internet stream
 
 Publish the stream URL as payload to `arylic/cmd/{device}/stream`, e.g.:
@@ -86,18 +94,21 @@ mosquitto_pub -t arylic/cmd/bureau/stream -m "http://icecast.vrtcdn.be/stubru-hi
 ## REST API
 There is a (basic) REST api available for debugging purposes.
 
-| Endpoint                     | Description               |
-|------------------------------|---------------------------|
-| /arylic                      | List of devices connected |
-| /arylic/{device}/device-info | get device-info           |
-| /arylic/{device}/mute        | mute                      |
-| /arylic/{device}/unmute      | unmute                    |
-| /arylic/{device}/metadata    | get metadata              |
-| /arylic/{device}/status      | get playback status       |
-| /arylic/{device}/play        | play                      |
-| /arylic/{device}/playpause   | toggle play/pause         |
-| /arylic/{device}/pause       | pause                     |
-| /arylic/{device}/stream      | play an internet stream (`POST`, URL as plain-text body) |
+State-changing endpoints use `POST`, queries use `GET`.
+
+| Method | Endpoint                     | Description                                    |
+|--------|------------------------------|------------------------------------------------|
+| GET    | /arylic                      | List of devices connected                      |
+| GET    | /arylic/{device}/device-info | get device-info                                |
+| POST   | /arylic/{device}/mute        | mute                                           |
+| POST   | /arylic/{device}/unmute      | unmute                                         |
+| GET    | /arylic/{device}/metadata    | get metadata                                   |
+| GET    | /arylic/{device}/status      | get playback status                            |
+| POST   | /arylic/{device}/play        | play                                           |
+| POST   | /arylic/{device}/playpause   | toggle play/pause                              |
+| POST   | /arylic/{device}/pause       | pause                                          |
+| POST   | /arylic/{device}/preset/{n}  | play preset n (1–10)                           |
+| POST   | /arylic/{device}/stream      | play an internet stream (URL as plain-text body) |
 
 ## OpenHab
 
