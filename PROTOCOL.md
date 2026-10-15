@@ -85,12 +85,11 @@ MCU+EQS+...
 
 Base URL: `http://{device_ip}/httpapi.asp?command=COMMAND`
 
-**Internet stream playback** (implemented in `ArylicConnection.playStream()`):
+**Internet stream playback** — the app's custom-radio feature (`FragCustomRadioTuneIn` → `action.f.S0`) uses:
 ```
-GET /httpapi.asp?command=setPlayerCmd:play:{hex_url}
+GET /httpapi.asp?command=setPlayerCmd:play:{Uri.encode(url)}
 ```
-The URL is hex-encoded: each byte becomes its 2-digit lowercase hex value.
-Example: `http://example.com` → `687474703a2f2f6578616d706c652e636f6d`
+This is **not** used by `ArylicConnection.playStream()`: devices whose `getStatusEx` reports a `security` field (e.g. H50: `"security": "https/2.0"`) close port 80 and only serve the HTTP API on 443 with mutual TLS (the app uses a client certificate bundled in the APK). `playStream()` uses UPnP `SetAVTransportURI` + `Play` instead (see UPnP section), which works on all devices.
 
 Other HTTP API commands found in the APK (not implemented):
 

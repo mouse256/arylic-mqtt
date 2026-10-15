@@ -31,6 +31,8 @@ In dev mode, MQTT connector is disabled — the app won't try to connect to a br
 
 ## Protocol reference
 
+**Do not use the HTTP API (`httpapi.asp`, port 80) for new features** unless there is no other option. Secure-mode devices (e.g. the H50, `"security": "https/2.0"` in `getStatusEx`) close port 80 and only serve that API over mutual TLS on 443 with a vendor client certificate. Prefer the TCP binary protocol (8899) or UPnP (49152), which work on all devices.
+
 `PROTOCOL.md` documents all three device interfaces (TCP binary port 8899, HTTP API port 80, UPnP port 49152) with command tables reverse-engineered from the Android APK. Check it first when adding new device features.
 
 ## Architecture
@@ -77,10 +79,7 @@ Vert.x event loop + worker threads (Quarkus defaults) plus one `DataReader` daem
 
 ### Internet stream playback
 
-Stream playback uses the device's **HTTP API** (port 80), not the TCP binary protocol. `ArylicConnection.playStream(url)` hex-encodes the URL byte-by-byte and calls:
-```
-GET http://{host}/httpapi.asp?command=setPlayerCmd:play:{hex_url}
-```
+Stream playback uses **UPnP AVTransport** (port 49152, `/upnp/control/rendertransport1`), not the TCP binary protocol. `ArylicConnection.playStream(url)` sends `SetAVTransportURI` (URL XML-escaped, empty metadata) followed by `Play`. Verified working on both plain devices and secure-mode devices (H50).
 
 - MQTT command: publish the stream URL to `arylic/cmd/{device}/stream`
 - REST: `POST /arylic/{device}/stream` with the URL as plain-text body

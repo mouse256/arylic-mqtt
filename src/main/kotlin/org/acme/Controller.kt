@@ -7,6 +7,7 @@ import io.vertx.core.Vertx
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
 import jakarta.inject.Inject
+import xyz.gianlu.zeroconf.RecordA
 import xyz.gianlu.zeroconf.Zeroconf
 import java.util.concurrent.Callable
 import kotlin.time.Duration.Companion.seconds
@@ -138,7 +139,7 @@ class Controller : ArylicConnection.Callbacks {
                 conn.sendCommand(Command.DeviceInfoCmd)
                 log.info { "Requesting deviceInfo from \"${cfg.host}:${cfg.port}\"" }
             } catch (ex: Exception) {
-                log.warn { "Unable to connect to device ${cfg.host}: ${ex.message}" }
+                log.warn(ex) { "Unable to connect to device ${cfg.host}: ${ex.message}" }
             }
         })
     }

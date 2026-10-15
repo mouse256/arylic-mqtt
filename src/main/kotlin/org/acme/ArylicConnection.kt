@@ -8,8 +8,11 @@ import kotlinx.coroutines.launch
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.IOException
+import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.URI
+import java.net.URL
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -70,6 +73,39 @@ class ArylicConnection(val device: Device, socket: Socket, val cb: Callbacks) {
             out.write(serde.encode(cmd).toByteArray())
             out.flush()
             log.debug{ "command sent to ${this.device.host}" }
+        }
+    }
+
+    /**
+     * Plays a stream URL via the standard UPnP AVTransport renderer (port 49152), which works on all
+     * devices, including secure-mode ones (e.g. H50) that don't expose the plain HTTP API.
+     */
+    fun playStream(url: String) {
+        val escapedUrl = url.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        log.info { "Playing stream via UPnP AVTransport: $url" }
+        upnpAvTransport("SetAVTransportURI", "<InstanceID>0</InstanceID><CurrentURI>$escapedUrl</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>")
+        upnpAvTransport("Play", "<InstanceID>0</InstanceID><Speed>1</Speed>")
+    }
+
+    private fun upnpAvTransport(action: String, args: String) {
+        val serviceType = "urn:schemas-upnp-org:service:AVTransport:1"
+        val soap = """<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$args</u:$action></s:Body></s:Envelope>"""
+        val conn = URI.create("http://${device.host}:49152/upnp/control/rendertransport1").toURL().openConnection() as HttpURLConnection
+        conn.connectTimeout = 5.seconds.inWholeMilliseconds.toInt()
+        conn.readTimeout = 10.seconds.inWholeMilliseconds.toInt()
+        conn.requestMethod = "POST"
+        conn.setRequestProperty("Content-Type", "text/xml; charset=\"utf-8\"")
+        conn.setRequestProperty("SOAPAction", "\"$serviceType#$action\"")
+        conn.doOutput = true
+        try {
+            conn.outputStream.use { it.write(soap.toByteArray(Charsets.UTF_8)) }
+            if (conn.responseCode != 200) {
+                val err = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                throw IOException("UPnP $action failed (${conn.responseCode}): $err")
+            }
+            log.debug { "UPnP $action OK" }
+        } finally {
+            conn.disconnect()
         }
     }
 
