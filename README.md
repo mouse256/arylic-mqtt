@@ -1,6 +1,8 @@
 # arylic-mqtt
 
 This program connects to the TCP API of [Arylic](https://www.arylic.com) devices and exposes them over MQTT.
+Playing internet streams uses the device's UPnP interface (port 49152) instead, which works on all devices,
+including ones in secure mode (e.g. the H50) that don't expose the plain HTTP API.
 
 The project is heavily a work-in-progress, not stable by any means.
 It's also a learning exercise for me to learn kotlin, so the code quality on that
@@ -74,6 +76,13 @@ State is published on `arylic/state/#`
 
 Commands are to be sent to `arylic/cmd/...`
 
+### Playing an internet stream
+
+Publish the stream URL as payload to `arylic/cmd/{device}/stream`, e.g.:
+```
+mosquitto_pub -t arylic/cmd/bureau/stream -m "http://icecast.vrtcdn.be/stubru-high.mp3"
+```
+
 ## REST API
 There is a (basic) REST api available for debugging purposes.
 
@@ -88,6 +97,7 @@ There is a (basic) REST api available for debugging purposes.
 | /arylic/{device}/play        | play                      |
 | /arylic/{device}/playpause   | toggle play/pause         |
 | /arylic/{device}/pause       | pause                     |
+| /arylic/{device}/stream      | play an internet stream (`POST`, URL as plain-text body) |
 
 ## OpenHab
 

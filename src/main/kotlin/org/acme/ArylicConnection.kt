@@ -11,6 +11,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.URI
 import java.net.URL
 import kotlin.time.Duration.Companion.seconds
 
@@ -89,7 +90,7 @@ class ArylicConnection(val device: Device, socket: Socket, val cb: Callbacks) {
     private fun upnpAvTransport(action: String, args: String) {
         val serviceType = "urn:schemas-upnp-org:service:AVTransport:1"
         val soap = """<?xml version="1.0" encoding="utf-8"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:$action xmlns:u="$serviceType">$args</u:$action></s:Body></s:Envelope>"""
-        val conn = URL("http://${device.host}:49152/upnp/control/rendertransport1").openConnection() as HttpURLConnection
+        val conn = URI.create("http://${device.host}:49152/upnp/control/rendertransport1").toURL().openConnection() as HttpURLConnection
         conn.connectTimeout = 5.seconds.inWholeMilliseconds.toInt()
         conn.readTimeout = 10.seconds.inWholeMilliseconds.toInt()
         conn.requestMethod = "POST"
