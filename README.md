@@ -91,6 +91,30 @@ Publish the stream URL as payload to `arylic/cmd/{device}/stream`, e.g.:
 mosquitto_pub -t arylic/cmd/bureau/stream -m "http://icecast.vrtcdn.be/stubru-high.mp3"
 ```
 
+## Home Assistant
+
+Devices are announced to Home Assistant using
+[MQTT discovery](https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery), so they show up
+automatically when the [MQTT integration](https://www.home-assistant.io/integrations/mqtt/) is set up with
+discovery enabled (the default).
+
+When a device is found, a retained device-discovery message is published on
+`homeassistant/device/arylic-mqtt/{model}/config`, where `{model}` is the first part of the device's
+mDNS hostname (e.g. `SoundSystem_B706`). It creates one device ("MusicPlayer {name}") with these entities:
+
+| Entity       | HA type | Behaviour                                                                                       |
+|--------------|---------|-------------------------------------------------------------------------------------------------|
+| Play/Pause   | Switch  | On = playing. State from `arylic/state/{device}/playing`, commands to `arylic/cmd/{device}/playpause` |
+| Volume       | Light   | Brightness (0–100) is the volume, from/to `arylic/state/{device}/volume` and `arylic/cmd/{device}/volume`. The on/off state mirrors playing |
+
+Both entities use `arylic/state/{device}/availability` (`online`/`offline`) for availability.
+
+Home Assistant's MQTT integration has no media player entity, which is why volume and play/pause are
+modelled as a light and a switch.
+
+**Limitation:** discovery messages are only sent for devices found through auto-discovery (mDNS).
+Devices configured statically with `ARYLIC_DEVICES_n__IP` don't appear in Home Assistant automatically.
+
 ## REST API
 There is a (basic) REST api available for debugging purposes.
 
